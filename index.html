@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECOVERSE - Personal Profile</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+    <header class="header">
+        <div class="avatar-container">
+            <img src="ECO.jpg" alt="ECOVERSE Avatar" class="profile-avatar">
+        </div>
+        <h1>ECOVERSE</h1>
+        <p class="tagline">The Digital Home of ECO</p>
+    </header>
+
+    <main class="container">
+        <section class="profile-card">
+            <h2><i class="fas fa-user-circle"></i> Profile</h2>
+            <div class="info-group">
+                <span class="label">Status:</span>
+                <span class="value"><i class="fas fa-graduation-cap"></i> Student</span>
+            </div>
+            <div class="info-group">
+                <span class="label">Online Alias:</span>
+                <span class="value">ECO</span>
+            </div>
+            <div class="info-group">
+                <span class="label">Current Name:</span>
+                <span class="value">ECOVERSE</span>
+            </div>
+            <div class="info-group">
+                <span class="label">Discord:</span>
+                <span class="value link-value">
+                    <a href="https://discordapp.com/users/962048694293762108" target="_blank" rel="noopener noreferrer">ecoverse._.</a>
+                </span>
+            </div>
+            <div class="info-group">
+                <span class="label">Religion:</span>
+                <span class="value">ISLAM</span>
+            </div>
+            <div class="info-group">
+                <span class="label">Dream Job:</span>
+                <span class="value">PILOT ✈️</span>
+            </div>
+        </section>
+
+        <section class="aviation-card">
+            <h2><i class="fas fa-plane-departure"></i> Aviation & Gaming</h2>
+            
+            <div class="info-group">
+                <span class="label">Favorite Aircraft:</span>
+                <span class="value">Airbus A350 / A380</span>
+            </div>
+            
+            <div class="info-group">
+                <span class="label">Current Sim:</span>
+                <span class="value">Roblox: Project Flight</span>
+            </div>
+            
+            <p>I recently bought <i> Project Flight</i> on Roblox (50 Robux). It features great graphics and realistic elements, though it won't replace MSFS.</p>
+            
+            <div class="info-group">
+                <span class="label">Learning Status:</span>
+                <span class="value">Self-Learning</span>
+            </div>
+            
+        </section>
+
+        <section class="skills-card">
+            <h2><i class="fas fa-tools"></i> Skills & Projects</h2>
+            
+            <p>I am focused on self-improvement and learning new things outside of my studies.</p>
+            
+            <h3>Core Skills:</h3>
+            <ul class="skill-list">
+                <li><i class="fas fa-gamepad"></i> Gaming & Simulation</li>
+            </ul>
+
+            <h3>Current Project:</h3>
+            <ul class="project-list">
+                <li><i class="fas fa-globe"></i> <strong>This Website!</strong> (Built from scratch)</li>
+            </ul>
+        </section>
+        
+        <section class="location-card">
+            <h2><i class="fas fa-map-marker-alt"></i> Location</h2>
+            <div class="info-group">
+                <span class="label">Current Residence:</span>
+                <span class="value">EGYPT</span>
+            </div>
+            <blockquote class="note">
+                <strong>Note on Egypt:</strong> No, I do not live in the pyramids. Yes, I do have water. And no, I do not ride a camel.
+            </blockquote>
+        </section>
+        
+        <section class="birthday-card">
+            <h2><i class="fas fa-birthday-cake"></i> Birthday Countdown</h2>
+            <div class="info-group">
+                <span class="label">Date:</span>
+                <span class="value">June 6</span>
+            </div>
+            <div id="countdown" class="countdown">
+                <span class="timer-label">Time until June 6, 2026:</span>
+                <div class="timer-value" id="countdown-display">Calculating...</div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        &copy; 2025 ECOVERSE. All rights reserved.
+    </footer>
+
+    <script>
+        // JavaScript for the Countdown Timer (Unchanged)
+        const targetDate = new Date("June 6, 2026 00:00:00").getTime();
+
+        const countdownFunction = setInterval(function() {
+            const now = new Date().getTime();
+            const distance = targetDate - now;
+
+            // Time calculations for days, hours, minutes and seconds
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            // Display the result in the element with id="countdown-display"
+            document.getElementById("countdown-display").innerHTML = 
+                `${days}d ${hours}h ${minutes}m ${seconds}s`;
+
+            // If the countdown is finished, write some text 
+            if (distance < 0) {
+                clearInterval(countdownFunction);
+                document.getElementById("countdown-display").innerHTML = "HAPPY BIRTHDAY!";
+            }
+        }, 1000);
+    </script>
+
+</body>
+</html>
