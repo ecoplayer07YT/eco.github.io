@@ -35,10 +35,14 @@
         <div class="terminal-header">
             <span>UNIT: 01-ECO | FMC-ELITE</span>
             <div class="controls">
-                <i class="fas fa-volume-up" id="sound-toggle"></i>
-                <i class="fas fa-palette" id="theme-toggle"></i>
-            </div>
-        </div>
+    <div class="theme-swatches">
+        <div class="swatch green" onclick="setTheme('theme-green')" title="Emerald"></div>
+        <div class="swatch amber" onclick="setTheme('theme-amber')" title="Classic Amber"></div>
+        <div class="swatch blue" onclick="setTheme('theme-blue')" title="Night Vision"></div>
+        <div class="swatch red" onclick="setTheme('theme-red')" title="Emergency"></div>
+    </div>
+    <i class="fas fa-volume-up" id="sound-toggle"></i>
+</div>
 
         <div id="terminal-content-wrapper">
             <div class="interactive-deck">
