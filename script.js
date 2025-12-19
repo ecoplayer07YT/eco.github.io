@@ -1,12 +1,16 @@
+import * as THREE from 'three'; // If you're not using Three.js anymore, you can remove this line.
+
 document.addEventListener('DOMContentLoaded', () => {
     const output = document.getElementById('typing-output');
     const inputContainer = document.getElementById('input-line-container');
     const commandInput = document.getElementById('command-input');
     const progressBar = document.getElementById('progress-bar');
     const progressContainer = document.getElementById('progress-container');
+    const wrapper = document.getElementById('terminal-content-wrapper');
 
     let isAudioOn = false;
     let audioCtx, oscillator, gainNode;
+    let rollAngle = 0;
 
     // --- 1. Audio Engine ---
     function playClick() {
@@ -36,7 +40,15 @@ document.addEventListener('DOMContentLoaded', () => {
         oscillator.start();
     }
 
-    // --- 2. Typing Engine ---
+    // --- 2. Theme Switcher Logic ---
+    window.setTheme = function(themeName) {
+        const themes = ['theme-green', 'theme-amber', 'theme-white', 'theme-red', 'theme-blue'];
+        document.body.classList.remove(...themes);
+        document.body.classList.add(themeName);
+        playClick();
+    };
+
+    // --- 3. Typing Engine (With Auto-Scroll) ---
     function typeWriter(text) {
         let i = 0;
         output.innerHTML = "";
@@ -53,32 +65,71 @@ document.addEventListener('DOMContentLoaded', () => {
                     playClick();
                     i++;
                 }
-                output.scrollTop = output.scrollHeight;
+                wrapper.scrollTop = wrapper.scrollHeight; // Auto-scroll
                 setTimeout(type, 12);
             } else {
                 inputContainer.style.display = 'flex';
                 commandInput.focus();
-                startCountdown(); // Starts the Birthday countdown
+                startCountdown();
             }
         }
         type();
     }
 
-    // --- 3. Command Map ---
+    // --- 4. Interactive Cockpit Controls ---
+    // Checklist interaction
+    document.querySelectorAll('.check-item').forEach(item => {
+        item.addEventListener('click', () => {
+            item.classList.toggle('done');
+            playClick();
+        });
+    });
+
+    // Annunciator Buttons
+    document.querySelectorAll('.sys-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            btn.classList.toggle('active');
+            playClick();
+        });
+    });
+
+    // Horizon Movement (Arrows)
+    window.addEventListener('keydown', (e) => {
+        const horizon = document.getElementById('horizon-instrument');
+        const warnOverlay = document.getElementById('master-warning-overlay');
+        const rollStatus = document.getElementById('bank-status');
+
+        if(e.key === "ArrowLeft") rollAngle -= 5;
+        if(e.key === "ArrowRight") rollAngle += 5;
+        if(e.key === "ArrowUp" || e.key === "ArrowDown") rollAngle = 0; // Level off
+
+        horizon.style.transform = `rotate(${rollAngle}deg)`;
+        rollStatus.innerText = `ROLL: ${rollAngle}°`;
+
+        // Bank Angle Warning Logic
+        if (Math.abs(rollAngle) > 35) {
+            warnOverlay.style.display = 'block';
+        } else {
+            warnOverlay.style.display = 'none';
+        }
+    });
+
+    // --- 5. Command Map ---
     const commands = {
         'HELP': () => `Commands: STATUS, ATC, FUEL, DESTINATION, HISTORY, CLEAR, THEME`,
         'STATUS': "[OK] APU: ON | GEAR: DOWN | HYDRAULICS: NORM",
         'ATC': () => "RESPONSE: Cleared to land Runway 22L.",
         'THEME': () => {
-            const themes = ['theme-green', 'theme-amber', 'theme-white'];
+            const themes = ['theme-green', 'theme-amber', 'theme-white', 'theme-blue'];
             let current = themes.find(t => document.body.classList.contains(t)) || 'theme-green';
-            document.body.classList.replace(current, themes[(themes.indexOf(current)+1)%3]);
-            return "Display Mode Cycled.";
+            let next = themes[(themes.indexOf(current) + 1) % themes.length];
+            setTheme(next);
+            return `Display switched to ${next.replace('theme-', '')}.`;
         },
         'CLEAR': () => { output.innerHTML = ""; return "[System Wiped]"; }
     };
 
-    // --- 4. Event Listeners ---
+    // --- 6. Event Listeners ---
     document.getElementById('enter-btn').addEventListener('click', () => {
         document.getElementById('landing-page').style.display = 'none';
         document.querySelector('.terminal-container').style.display = 'flex';
@@ -113,20 +164,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 output.innerHTML += "Unknown Command.\n";
             }
             commandInput.value = "";
-            output.scrollTop = output.scrollHeight;
+            wrapper.scrollTop = wrapper.scrollHeight;
         }
     });
 
-    // --- 5. Utilities & Birthday Logic ---
+    document.getElementById('sound-toggle').addEventListener('click', (e) => {
+        isAudioOn = !isAudioOn;
+        e.target.classList.toggle('fa-volume-mute');
+        if (isAudioOn && audioCtx.state === 'suspended') audioCtx.resume();
+    });
+
+    // --- 7. Utilities & Birthday Logic ---
     function startCountdown() {
-        // SET YOUR BIRTHDAY HERE (Month is 0-indexed, so June is 5)
         const currentYear = new Date().getFullYear();
         let birthday = new Date(currentYear, 5, 6); // June 6th
-
-        // If birthday already passed this year, set to next year
-        if (new Date() > birthday) {
-            birthday = new Date(currentYear + 1, 5, 6);
-        }
+        if (new Date() > birthday) birthday = new Date(currentYear + 1, 5, 6);
 
         setInterval(() => {
             const el = document.getElementById('countdown-display-terminal');
@@ -141,5 +193,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(() => {
         const now = new Date();
         document.getElementById('live-clock').innerText = now.toISOString().split('T')[1].split('.')[0] + 'Z';
+        document.getElementById('hud-alt-val').innerText = (35000 + Math.floor(Math.random()*15)).toLocaleString();
     }, 1000);
 });
