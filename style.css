@@ -1,114 +1,68 @@
 :root {
     --bg: #05070a;
     --primary: #00ff73; 
-    --accent: #00e0ff;
     --glow: rgba(0, 255, 115, 0.6);
     --font: 'VT323', monospace;
 }
 
-/* Base Styling */
 body { 
-    background: var(--bg); 
-    color: var(--primary); 
-    font-family: var(--font); 
-    margin: 0; 
-    height: 100vh; 
-    display: flex; 
-    justify-content: center; 
-    align-items: center; 
-    overflow: hidden;
+    background: var(--bg); color: var(--primary); font-family: var(--font);
+    margin: 0; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden;
 }
 
-/* 1. Landing Page Fix (Centering everything) */
+/* Maintenance Screen */
+#maintenance-screen {
+    position: fixed; inset: 0; background: #000; z-index: 10000;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+}
+
+/* Landing Page Centering */
 #landing-page {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: var(--bg);
-    z-index: 9999; /* Higher than everything else */
-    display: flex; /* Script will change this to 'none' */
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    position: fixed; inset: 0; background: var(--bg); z-index: 5000;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
 }
 
-.glitch {
-    font-size: 5rem;
-    margin: 0;
-    color: var(--primary);
-    text-shadow: 0 0 15px var(--glow);
-    font-weight: bold;
-}
+.glitch { font-size: 5rem; text-shadow: 0 0 20px var(--primary); margin: 0; }
 
 #enter-btn {
-    margin-top: 20px;
-    background: transparent;
-    color: var(--primary);
-    border: 2px solid var(--primary);
-    padding: 15px 40px;
-    font-family: var(--font);
-    font-size: 1.5rem;
-    cursor: pointer;
-    box-shadow: 0 0 10px var(--glow);
-    transition: 0.3s;
+    background: transparent; color: var(--primary); border: 2px solid var(--primary);
+    padding: 15px 40px; font-family: var(--font); font-size: 1.5rem; cursor: pointer;
+    margin-top: 20px; box-shadow: 0 0 15px var(--glow);
 }
 
-#enter-btn:hover {
-    background: var(--primary);
-    color: var(--bg);
-    box-shadow: 0 0 25px var(--primary);
-}
-
-/* 2. Terminal Glow & Text Fix */
+/* Terminal & Text */
 .terminal-container {
-    width: 90vw;
-    height: 90vh;
-    border: 3px solid var(--primary);
-    background: rgba(0, 0, 0, 0.95);
-    box-shadow: 0 0 30px var(--glow), inset 0 0 15px var(--glow);
-    display: flex;
-    flex-direction: column;
-    padding: 20px;
-    box-sizing: border-box;
+    width: 90vw; height: 85vh; border: 3px solid var(--primary);
+    background: rgba(0, 0, 0, 0.9); box-shadow: 0 0 30px var(--glow);
+    display: flex; flex-direction: column; padding: 20px;
 }
 
 #typing-output {
-    font-size: 1.4rem; /* Making it bigger and bolder */
-    line-height: 1.5;
-    font-weight: 900;
-    text-shadow: 0 0 8px var(--primary);
+    font-size: 1.4rem; font-weight: bold; line-height: 1.4;
+    text-shadow: 0 0 8px var(--primary); color: var(--primary);
 }
 
-/* 3. Master Warning Fix (Make it hidden by default) */
-#master-warning-overlay {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: #ff3e3e;
-    font-size: 6rem;
-    font-weight: bold;
-    z-index: 5000;
-    display: none; /* Logic in script.js shows this */
-    text-shadow: 0 0 30px red;
-    pointer-events: none;
-}
+.text-error { color: #ff3e3e !important; text-shadow: 0 0 10px red; }
+.text-success { color: #00ff73 !important; text-shadow: 0 0 10px #00ff73; }
+.text-accent { color: #00e0ff !important; text-shadow: 0 0 10px #00e0ff; }
+.text-white { color: #ffffff !important; }
+.text-dim { opacity: 0.5; }
 
-/* 4. Formatting Colors */
-.text-error { color: #ff3e3e !important; text-shadow: 0 0 10px red; font-weight: bold; }
-.text-success { color: #00ff73 !important; text-shadow: 0 0 10px #00ff73; font-weight: bold; }
-.text-accent { color: #00e0ff !important; text-shadow: 0 0 10px #00e0ff; font-weight: bold; }
-.text-white { color: #ffffff !important; text-shadow: 0 0 10px white; font-weight: bold; }
-
-/* 5. Horizon Instrument Size */
+/* Horizon Instrument */
 #horizon-instrument {
-    width: 150px;
-    height: 150px;
-    border: 4px solid var(--primary);
-    border-radius: 50%;
-    position: relative;
-    overflow: hidden;
-    margin-bottom: 10px;
+    width: 120px; height: 120px; border: 3px solid var(--primary);
+    border-radius: 50%; overflow: hidden; position: relative; background: #795548;
+}
+.horizon-sky { height: 50%; background: #2196F3; border-bottom: 2px solid white; }
+
+/* Scanlines */
+.scanlines {
+    position: fixed; inset: 0; pointer-events: none; z-index: 9000;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+    background-size: 100% 4px;
+}
+
+#master-warning-overlay {
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    color: #ff3e3e; font-size: 5rem; font-weight: bold; display: none; z-index: 100;
 }
