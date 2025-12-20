@@ -6,50 +6,65 @@
     --font: 'VT323', monospace;
 }
 
-body.theme-amber { --primary: #ffb100; --glow: rgba(255, 177, 0, 0.4); --accent: #ffeb3b; }
-body.theme-white { --primary: #ffffff; --glow: rgba(255, 255, 255, 0.3); --accent: #00e0ff; }
-body.theme-red { --primary: #ff3e3e; --glow: rgba(255, 62, 62, 0.6); --accent: #ffffff; }
-body.theme-blue { --primary: #00e0ff; --glow: rgba(0, 224, 255, 0.4); --accent: #ffffff; }
+body { 
+    background: var(--bg); 
+    color: var(--primary); 
+    font-family: var(--font); 
+    margin: 0; 
+    overflow: hidden; 
+    height: 100vh;
+}
 
-body { background: var(--bg); color: var(--primary); font-family: var(--font); margin: 0; overflow: hidden; height: 100vh; display: flex; justify-content: center; align-items: center; }
+/* THE GLOW ENGINE */
+#typing-output, .text-success, .text-error, .text-accent, .text-white {
+    font-weight: bold;
+    letter-spacing: 1px;
+    /* This creates the "bloom" effect on the letters */
+}
 
-/* Coloring Classes */
-.text-error { color: #ff3e3e !important; text-shadow: 0 0 5px red; }
-.text-success { color: #00ff73 !important; text-shadow: 0 0 5px #00ff73; }
-.text-accent { color: #00e0ff !important; text-shadow: 0 0 5px #00e0ff; }
-.text-white { color: #ffffff !important; }
-.text-dim { color: rgba(255,255,255,0.4); }
-.terminal-label { color: var(--primary); opacity: 0.7; }
-.terminal-heading { color: var(--accent); font-weight: bold; }
+.text-error { 
+    color: #ff3e3e !important; 
+    text-shadow: 0 0 8px #ff3e3e, 0 0 15px rgba(255, 0, 0, 0.5); 
+}
 
-/* UI Elements */
-.scanlines { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%); background-size: 100% 4px; pointer-events: none; z-index: 10; }
-.terminal-container { width: 95%; max-width: 1000px; height: 90vh; background: rgba(0, 0, 0, 0.95); border: 2px solid var(--primary); box-shadow: 0 0 20px var(--glow); padding: 15px; display: flex; flex-direction: column; position: relative; z-index: 20; }
-#terminal-content-wrapper { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; scroll-behavior: smooth; }
-#typing-output { white-space: pre-wrap; line-height: 1.3; font-size: 1.1rem; }
+.text-success { 
+    color: #00ff73 !important; 
+    text-shadow: 0 0 8px #00ff73, 0 0 15px rgba(0, 255, 115, 0.5); 
+}
 
-/* Horizon */
-#horizon-instrument { width: 100px; height: 100px; border-radius: 50%; border: 2px solid var(--primary); overflow: hidden; position: relative; transition: transform 0.1s ease-out; margin: 0 auto; }
-.horizon-sky { height: 50%; background: #2196F3; }
-.horizon-ground { height: 50%; background: #795548; }
-.horizon-line { position: absolute; top: 50%; width: 100%; height: 1px; background: white; }
-.aircraft-symbol { position: absolute; top: 50%; left: 50%; width: 30px; height: 2px; background: yellow; transform: translate(-50%, -50%); }
+.text-accent { 
+    color: #00e0ff !important; 
+    text-shadow: 0 0 8px #00e0ff, 0 0 15px rgba(0, 224, 255, 0.5); 
+}
 
-/* Swatches */
-.theme-swatches { display: flex; gap: 8px; margin-right: 15px; }
-.swatch { width: 14px; height: 14px; border: 1px solid #fff; cursor: pointer; transition: 0.2s; }
-.swatch.green { background: #00ff73; }
-.swatch.amber { background: #ffb100; }
-.swatch.blue { background: #00e0ff; }
-.swatch.red { background: #ff3e3e; }
+.text-white { 
+    color: #ffffff !important; 
+    text-shadow: 0 0 8px #ffffff, 0 0 12px rgba(255, 255, 255, 0.4); 
+}
 
-/* Master Warning */
-#master-warning-overlay { position: fixed; top: 30%; left: 50%; transform: translateX(-50%); color: #ff3e3e; font-size: 4rem; font-weight: bold; display: none; z-index: 1000; text-shadow: 0 0 20px red; }
+#typing-output {
+    color: var(--primary);
+    text-shadow: 0 0 5px var(--primary);
+    line-height: 1.4;
+    font-size: 1.25rem; /* Slightly larger for readability */
+}
 
-/* Interactive Deck & Inputs */
-.interactive-deck { display: flex; justify-content: space-around; align-items: center; padding: 10px; border: 1px solid var(--primary); margin-bottom: 10px; }
-.input-line { display: flex; align-items: center; border-top: 1px solid var(--primary); padding-top: 10px; }
-#command-input { background: transparent; border: none; outline: none; color: var(--primary); font-family: var(--font); font-size: 1.2rem; flex-grow: 1; }
-#landing-page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2000; display: flex; justify-content: center; align-items: center; flex-direction: column; }
-#enter-btn { background: transparent; color: var(--primary); border: 2px solid var(--primary); padding: 15px 30px; font-family: var(--font); cursor: pointer; font-size: 1.2rem; }
-#progress-bar { height: 5px; background: var(--primary); width: 0%; transition: width 0.1s; }
+/* Scanline Overlay - Makes it look like an old monitor */
+.scanlines {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%, 
+        rgba(0, 0, 0, 0.15) 50%
+    );
+    background-size: 100% 3px;
+    pointer-events: none;
+    z-index: 100;
+}
+
+/* Container Glow */
+.terminal-container {
+    border: 2px solid var(--primary);
+    box-shadow: 0 0 20px var(--glow), inset 0 0 10px var(--glow);
+    background: rgba(0, 0, 0, 0.9);
+}
