@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (isAudioOn) playClick();
                     i++;
                     wrapper.scrollTop = wrapper.scrollHeight;
-                    setTimeout(type, 10);
+                    setTimeout(type, 15);
                 }
             } else {
                 inputContainer.style.display = 'flex';
