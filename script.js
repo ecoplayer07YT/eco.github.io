@@ -86,15 +86,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- 5. UTILS (Flight, Audio, Clock) ---
-    window.addEventListener('keydown', (e) => {
-        const horizon = document.getElementById('horizon-instrument');
-        const warn = document.getElementById('master-warning-overlay');
-        if(e.key === "ArrowLeft") rollAngle -= 5;
-        if(e.key === "ArrowRight") rollAngle += 5;
-        if(e.key === "ArrowUp") rollAngle = 0;
-        if(horizon) {
-            horizon.style.transform = `rotate(${rollAngle}deg)`;
-            warn.style.display = Math.abs(rollAngle) > 30 ? 'block' : 'none';
+ // ... inside your keydown listener ...
+window.addEventListener('keydown', (e) => {
+    const horizon = document.getElementById('horizon-instrument');
+    const warnOverlay = document.getElementById('master-warning-overlay');
+    
+    if (e.key === "ArrowLeft") rollAngle -= 10;
+    if (e.key === "ArrowRight") rollAngle += 10;
+    if (e.key === "ArrowUp") rollAngle = 0;
+
+    if (horizon) {
+        horizon.style.transform = `rotate(${rollAngle}deg)`;
+        
+        // ONLY show if banking more than 35 degrees
+        if (Math.abs(rollAngle) > 35) {
+            warnOverlay.style.display = 'block';
+        } else {
+            warnOverlay.style.display = 'none';
+        }
+    }
+});
         }
     });
 
