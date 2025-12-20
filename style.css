@@ -23,7 +23,15 @@ body {
     justify-content: center; 
     align-items: center; 
 }
+/* Terminal Text Colors */
+.text-error { color: #ff3e3e; text-shadow: 0 0 8px rgba(255, 62, 62, 0.6); font-weight: bold; }
+.text-success { color: #00ff73; text-shadow: 0 0 8px rgba(0, 255, 115, 0.6); }
+.text-accent { color: #00e0ff; text-shadow: 0 0 8px rgba(0, 224, 255, 0.6); }
+.text-white { color: #ffffff; text-shadow: 0 0 8px rgba(255, 255, 255, 0.5); }
+.text-dim { color: rgba(255, 255, 255, 0.5); }
 
+.terminal-label { color: var(--primary); opacity: 0.8; }
+.terminal-heading { color: var(--accent); font-weight: bold; text-decoration: underline; }
 /* HUD elements */
 .hud-layer {
     position: fixed;
