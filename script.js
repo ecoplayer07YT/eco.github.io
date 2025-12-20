@@ -20,7 +20,28 @@ document.addEventListener('DOMContentLoaded', () => {
             bootSystem();
         };
     }
-
+// 1. MAINTENANCE UNLOCK (Press F8)
+    window.addEventListener('keydown', (e) => {
+        // F8 key code is 119
+        if (e.key === "F8" || e.keyCode === 119) {
+            e.preventDefault(); // Prevents any default browser behavior
+            
+            const shield = document.getElementById('maintenance-screen');
+            const landingPage = document.getElementById('landing-page');
+            
+            if (shield) {
+                // Add a cool fade-out effect via JS
+                shield.style.transition = "opacity 0.5s ease";
+                shield.style.opacity = "0";
+                
+                setTimeout(() => {
+                    shield.style.display = 'none';
+                    landingPage.style.display = 'flex';
+                    console.log("ADMIN AUTHENTICATED: System Unlocked.");
+                }, 500);
+            }
+        }
+    });
     // 3. THEME SYSTEM
     window.setTheme = function(themeName) {
         const themes = ['theme-green', 'theme-amber', 'theme-white', 'theme-red', 'theme-blue'];
