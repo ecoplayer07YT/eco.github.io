@@ -1,6 +1,4 @@
-// --- 1. CORE SYSTEM INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
-    // Select all necessary elements
     const enterBtn = document.getElementById('enter-btn');
     const landingPage = document.getElementById('landing-page');
     const terminalContainer = document.querySelector('.terminal-container');
@@ -11,24 +9,53 @@ document.addEventListener('DOMContentLoaded', () => {
     const progressContainer = document.getElementById('progress-container');
     const wrapper = document.getElementById('terminal-content-wrapper');
 
-    // --- 2. THE INITIALIZE BUTTON FIX ---
+    let isAudioOn = false;
+    let audioCtx, oscillator, gainNode;
+    let rollAngle = 0;
+
+    // --- 1. INITIALIZE SYSTEM ---
     if (enterBtn) {
         enterBtn.addEventListener('click', () => {
-            console.log("Avionics Initializing..."); // Debug check
             landingPage.style.display = 'none';
             terminalContainer.style.display = 'flex';
-            
-            // Start audio and boot
             startAvionicsHum();
             isAudioOn = true;
             bootSystem();
         });
     }
 
-    // --- 3. AUDIO ENGINE ---
-    let isAudioOn = false;
-    let audioCtx, oscillator, gainNode;
+    // --- 2. THEME & UI LOGIC ---
+    window.setTheme = function(themeName) {
+        const themes = ['theme-green', 'theme-amber', 'theme-white', 'theme-red', 'theme-blue'];
+        document.body.classList.remove(...themes);
+        document.body.classList.add(themeName);
+        playClick();
+    };
 
+    // --- 3. FLIGHT INSTRUMENT LOGIC (Arrows to Fly) ---
+    window.addEventListener('keydown', (e) => {
+        const horizon = document.getElementById('horizon-instrument');
+        const warnOverlay = document.getElementById('master-warning-overlay');
+        const rollStatus = document.getElementById('bank-status');
+
+        if(e.key === "ArrowLeft") rollAngle -= 5;
+        if(e.key === "ArrowRight") rollAngle += 5;
+        if(e.key === "ArrowUp" || e.key === "ArrowDown") rollAngle = 0; // Reset
+
+        if (horizon) {
+            horizon.style.transform = `rotate(${rollAngle}deg)`;
+            rollStatus.innerText = `ROLL: ${rollAngle}°`;
+            
+            // Trigger Master Warning if banking too hard
+            if (Math.abs(rollAngle) > 30) {
+                warnOverlay.style.display = 'block';
+            } else {
+                warnOverlay.style.display = 'none';
+            }
+        }
+    });
+
+    // --- 4. AUDIO ENGINE ---
     function playClick() {
         if (!audioCtx || !isAudioOn) return;
         const clickOsc = audioCtx.createOscillator();
@@ -56,14 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
         oscillator.start();
     }
 
-    // --- 4. THEME & UI LOGIC ---
-    window.setTheme = function(themeName) {
-        const themes = ['theme-green', 'theme-amber', 'theme-white', 'theme-red', 'theme-blue'];
-        document.body.classList.remove(...themes);
-        document.body.classList.add(themeName);
-        playClick();
-    };
-
+    // --- 5. BOOT & TYPING ---
     function bootSystem() {
         progressContainer.style.display = 'block';
         let width = 0;
@@ -71,12 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (width >= 100) { 
                 clearInterval(interval); 
                 progressContainer.style.display = 'none'; 
-                // Ensure terminalContent exists in terminal-content.js
-                if (typeof terminalContent !== 'undefined') {
-                    typeWriter(terminalContent.trim()); 
-                } else {
-                    typeWriter("ERROR: TERMINAL CONTENT NOT FOUND.");
-                }
+                typeWriter(terminalContent.trim()); 
             } else { 
                 width++; 
                 progressBar.style.width = width + '%'; 
@@ -84,7 +99,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 15);
     }
 
-    // --- 5. TYPING & COMMANDS ---
     function typeWriter(text) {
         let i = 0;
         output.innerHTML = "";
@@ -111,6 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
         type();
     }
 
+    // --- 6. COMMAND SYSTEM (Fixed & Expanded) ---
     commandInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             const rawInput = commandInput.value.trim();
@@ -118,22 +133,31 @@ document.addEventListener('DOMContentLoaded', () => {
             output.innerHTML += `\n<span style="color:var(--accent)">PILOT@ECOVERSE > ${rawInput}</span>\n`;
             
             const commands = {
-                'HELP': "Commands: STATUS, ATC, FUEL, CLEAR, THEME",
+                'HELP': "Commands: STATUS, ATC, FUEL, THEME, CLEAR",
                 'STATUS': "[OK] APU: ON | GEAR: DOWN | HYDRAULICS: NORM",
+                'ATC': () => "TOWER: Ecoverse 01, cleared for ILS approach runway 22L.",
+                'FUEL': () => `FUEL: ${Math.floor(Math.random() * 20 + 70)}% | FLOW: 2400 PPH`,
+                'THEME': () => {
+                    const themes = ['theme-green', 'theme-amber', 'theme-white', 'theme-blue'];
+                    let current = themes.find(t => document.body.classList.contains(t)) || 'theme-green';
+                    let next = themes[(themes.indexOf(current) + 1) % themes.length];
+                    setTheme(next);
+                    return `Display cycled to ${next.replace('theme-', '')}.`;
+                },
                 'CLEAR': () => { output.innerHTML = ""; return "[System Wiped]"; }
             };
 
             if (commands[cmd]) {
                 output.innerHTML += (typeof commands[cmd] === 'function' ? commands[cmd]() : commands[cmd]) + "\n";
             } else if (cmd !== "") {
-                output.innerHTML += "Unknown Command.\n";
+                output.innerHTML += "Unknown Command. Type HELP for list.\n";
             }
             commandInput.value = "";
             wrapper.scrollTop = wrapper.scrollHeight;
         }
     });
 
-    // --- 6. UTILITIES (Clock & Countdown) ---
+    // --- 7. UTILITIES ---
     function startCountdown() {
         const currentYear = new Date().getFullYear();
         let birthday = new Date(currentYear, 5, 6);
