@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let audioCtx, oscillator, gainNode;
     let rollAngle = 0;
 
-    // --- 1. INITIALIZE SYSTEM ---
+    // --- 1. INITIALIZE ---
     if (enterBtn) {
         enterBtn.addEventListener('click', () => {
             landingPage.style.display = 'none';
@@ -24,81 +24,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- 2. THEME & UI LOGIC ---
+    // --- 2. THEME SWITCHER ---
     window.setTheme = function(themeName) {
         const themes = ['theme-green', 'theme-amber', 'theme-white', 'theme-red', 'theme-blue'];
         document.body.classList.remove(...themes);
         document.body.classList.add(themeName);
-        playClick();
+        if(isAudioOn) playClick();
     };
 
-    // --- 3. FLIGHT INSTRUMENT LOGIC (Arrows to Fly) ---
-    window.addEventListener('keydown', (e) => {
-        const horizon = document.getElementById('horizon-instrument');
-        const warnOverlay = document.getElementById('master-warning-overlay');
-        const rollStatus = document.getElementById('bank-status');
-
-        if(e.key === "ArrowLeft") rollAngle -= 5;
-        if(e.key === "ArrowRight") rollAngle += 5;
-        if(e.key === "ArrowUp" || e.key === "ArrowDown") rollAngle = 0; // Reset
-
-        if (horizon) {
-            horizon.style.transform = `rotate(${rollAngle}deg)`;
-            rollStatus.innerText = `ROLL: ${rollAngle}°`;
-            
-            // Trigger Master Warning if banking too hard
-            if (Math.abs(rollAngle) > 30) {
-                warnOverlay.style.display = 'block';
-            } else {
-                warnOverlay.style.display = 'none';
-            }
-        }
-    });
-
-    // --- 4. AUDIO ENGINE ---
-    function playClick() {
-        if (!audioCtx || !isAudioOn) return;
-        const clickOsc = audioCtx.createOscillator();
-        const clickGain = audioCtx.createGain();
-        clickOsc.type = 'square';
-        clickOsc.frequency.setValueAtTime(150 + Math.random() * 60, audioCtx.currentTime);
-        clickGain.gain.setValueAtTime(0.01, audioCtx.currentTime);
-        clickGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.03);
-        clickOsc.connect(clickGain);
-        clickGain.connect(audioCtx.destination);
-        clickOsc.start();
-        clickOsc.stop(audioCtx.currentTime + 0.03);
-    }
-
-    function startAvionicsHum() {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        oscillator = audioCtx.createOscillator();
-        gainNode = audioCtx.createGain();
-        oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(55, audioCtx.currentTime);
-        gainNode.gain.setValueAtTime(0.04, audioCtx.currentTime);
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        oscillator.start();
-    }
-
-    // --- 5. BOOT & TYPING ---
-    function bootSystem() {
-        progressContainer.style.display = 'block';
-        let width = 0;
-        const interval = setInterval(() => {
-            if (width >= 100) { 
-                clearInterval(interval); 
-                progressContainer.style.display = 'none'; 
-                typeWriter(terminalContent.trim()); 
-            } else { 
-                width++; 
-                progressBar.style.width = width + '%'; 
-            }
-        }, 15);
-    }
-
+    // --- 3. TYPING ENGINE (COLOR ENABLED) ---
     function typeWriter(text) {
         let i = 0;
         output.innerHTML = "";
@@ -106,16 +40,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (i < text.length) {
                 if (text.charAt(i) === '<') {
                     let tagEnd = text.indexOf('>', i);
-                    let tag = text.substring(i, tagEnd + 1);
-                    output.innerHTML += tag;
+                    output.innerHTML += text.substring(i, tagEnd + 1);
                     i = tagEnd + 1;
+                    type(); // Move to next char immediately
                 } else {
                     output.innerHTML += text.charAt(i);
-                    playClick();
+                    if (isAudioOn) playClick();
                     i++;
+                    wrapper.scrollTop = wrapper.scrollHeight;
+                    setTimeout(type, 10);
                 }
-                wrapper.scrollTop = wrapper.scrollHeight;
-                setTimeout(type, 12);
             } else {
                 inputContainer.style.display = 'flex';
                 commandInput.focus();
@@ -125,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
         type();
     }
 
-    // --- 6. COMMAND SYSTEM (Fixed & Expanded) ---
+    // --- 4. COMMANDS ---
     commandInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             const rawInput = commandInput.value.trim();
@@ -133,48 +67,80 @@ document.addEventListener('DOMContentLoaded', () => {
             output.innerHTML += `\n<span style="color:var(--accent)">PILOT@ECOVERSE > ${rawInput}</span>\n`;
             
             const commands = {
-                'HELP': "Commands: STATUS, ATC, FUEL, THEME, CLEAR",
-                'STATUS': "[OK] APU: ON | GEAR: DOWN | HYDRAULICS: NORM",
-                'ATC': () => "TOWER: Ecoverse 01, cleared for ILS approach runway 22L.",
-                'FUEL': () => `FUEL: ${Math.floor(Math.random() * 20 + 70)}% | FLOW: 2400 PPH`,
-                'THEME': () => {
-                    const themes = ['theme-green', 'theme-amber', 'theme-white', 'theme-blue'];
-                    let current = themes.find(t => document.body.classList.contains(t)) || 'theme-green';
-                    let next = themes[(themes.indexOf(current) + 1) % themes.length];
-                    setTheme(next);
-                    return `Display cycled to ${next.replace('theme-', '')}.`;
-                },
+                'HELP': "<span class='text-accent'>STATUS, ATC, FUEL, THEME, CLEAR</span>",
+                'STATUS': "<span class='text-success'>[OK]</span> ALL SYSTEMS NORM",
+                'ATC': "<span class='text-accent'>TOWER:</span> Ecoverse 01, runway 22L clear.",
+                'FUEL': () => `<span class='text-white'>FUEL:</span> ${Math.floor(Math.random()*15+75)}%`,
+                'THEME': () => { setTheme('theme-amber'); return "Theme reset to Amber."; },
                 'CLEAR': () => { output.innerHTML = ""; return "[System Wiped]"; }
             };
 
             if (commands[cmd]) {
                 output.innerHTML += (typeof commands[cmd] === 'function' ? commands[cmd]() : commands[cmd]) + "\n";
             } else if (cmd !== "") {
-                output.innerHTML += "Unknown Command. Type HELP for list.\n";
+                output.innerHTML += "Unknown Command.\n";
             }
             commandInput.value = "";
             wrapper.scrollTop = wrapper.scrollHeight;
         }
     });
 
-    // --- 7. UTILITIES ---
-    function startCountdown() {
-        const currentYear = new Date().getFullYear();
-        let birthday = new Date(currentYear, 5, 6);
-        if (new Date() > birthday) birthday = new Date(currentYear + 1, 5, 6);
+    // --- 5. UTILS (Flight, Audio, Clock) ---
+    window.addEventListener('keydown', (e) => {
+        const horizon = document.getElementById('horizon-instrument');
+        const warn = document.getElementById('master-warning-overlay');
+        if(e.key === "ArrowLeft") rollAngle -= 5;
+        if(e.key === "ArrowRight") rollAngle += 5;
+        if(e.key === "ArrowUp") rollAngle = 0;
+        if(horizon) {
+            horizon.style.transform = `rotate(${rollAngle}deg)`;
+            warn.style.display = Math.abs(rollAngle) > 30 ? 'block' : 'none';
+        }
+    });
 
+    function playClick() {
+        if (!audioCtx) return;
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.type = 'square'; o.frequency.setValueAtTime(200, audioCtx.currentTime);
+        g.gain.setValueAtTime(0.01, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.03);
+        o.connect(g); g.connect(audioCtx.destination);
+        o.start(); o.stop(audioCtx.currentTime + 0.03);
+    }
+
+    function startAvionicsHum() {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        oscillator = audioCtx.createOscillator();
+        gainNode = audioCtx.createGain();
+        oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(55, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.02, audioCtx.currentTime);
+        oscillator.connect(gainNode); gainNode.connect(audioCtx.destination);
+        oscillator.start();
+    }
+
+    function bootSystem() {
+        progressContainer.style.display = 'block';
+        let w = 0;
+        const t = setInterval(() => {
+            if (w >= 100) { clearInterval(t); progressContainer.style.display = 'none'; typeWriter(terminalContent.trim()); }
+            else { w++; progressBar.style.width = w + '%'; }
+        }, 15);
+    }
+
+    function startCountdown() {
         setInterval(() => {
             const el = document.getElementById('countdown-display-terminal');
-            if(!el) return;
-            const dist = birthday.getTime() - new Date().getTime();
-            const d = Math.floor(dist / (1000 * 60 * 60 * 24));
-            const h = Math.floor((dist % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            el.innerHTML = `<span class="terminal-value">${d}d ${h}h remaining</span>`;
+            const target = new Date(new Date().getFullYear(), 5, 6);
+            if (new Date() > target) target.setFullYear(target.getFullYear() + 1);
+            const dist = target - new Date();
+            const d = Math.floor(dist / 86400000);
+            const h = Math.floor((dist % 86400000) / 3600000);
+            if(el) el.innerHTML = `${d}d ${h}h to Birthday`;
         }, 1000);
     }
 
     setInterval(() => {
-        const now = new Date();
-        document.getElementById('live-clock').innerText = now.toISOString().split('T')[1].split('.')[0] + 'Z';
+        document.getElementById('live-clock').innerText = new Date().toISOString().split('T')[1].split('.')[0] + 'Z';
     }, 1000);
 });
