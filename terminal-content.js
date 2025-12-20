@@ -16,7 +16,7 @@ const terminalContent = `
 > <span class="terminal-label">Loc:</span>     <span class="text-accent">EGYPT</span>
 
 <span class="terminal-heading">| FLIGHT DATA:</span>
-> <span class="terminal-label">Birthday Countdown:</span> <span id="countdown-display-terminal" class="text-white">Calculating...</span>
+> <span class="terminal-label">Birthday Countdown:</span> <span id="countdown-display-terminal" class="text-white">.</span>
 
 <span class="text-success">[PROCESS COMPLETE] All systems checked. Ready for departure.</span>
 `;
