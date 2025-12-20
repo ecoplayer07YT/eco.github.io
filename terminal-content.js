@@ -3,7 +3,7 @@ const terminalContent = `
 <span class="text-error">[FAIL] ❌ car lover.</span>
 <span class="text-success">[SUCCESS] ✅ plane lover.</span>
 <span class="text-success">[SUCCESS] PRIMARY FLIGHT DISPLAY CONNECTED.</span>
-<span class="text-accent">[INFO] CLOUD SYNC: is-a.dev/ecoverse</span>
+<span class="text-accent">[INFO] CLOUD SYNC: eco.is-a.dev</span>
 
 =======================================================
 |          <span class="text-white">ECOVERSE - PRE-FLIGHT CHECKLIST (PFC)</span>        |
@@ -16,7 +16,7 @@ const terminalContent = `
 > <span class="terminal-label">Loc:</span>     <span class="text-accent">EGYPT</span>
 
 <span class="terminal-heading">| FLIGHT DATA:</span>
-> <span class="terminal-label">Birthday Countdown:</span> <span id="countdown-display-terminal" class="text-white">.</span>
+> <span class="terminal-label">Birthday Countdown:</span> <span id="countdown-display-terminal" class="text-white">Calculating...</span>
 
-<span class="text-success">[PROCESS COMPLETE] All systems checked.</span>
+<span class="text-success">[PROCESS COMPLETE] All systems checked. Ready for departure.</span>
 `;
