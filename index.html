@@ -6,65 +6,48 @@
     <title>ECOVERSE | Pilot Terminal</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
-<body class="terminal-body theme-green">
+<body class="theme-green">
+
+    <div id="maintenance-screen">
+        <h1 class="text-error">SYSTEM OFFLINE</h1>
+        <p class="text-white">DOWN FOR MAINTENANCE - V5.1 UPGRADE IN PROGRESS</p>
+    </div>
 
     <div class="scanlines"></div>
     <div id="master-warning-overlay">BANK ANGLE</div>
 
-    <div id="landing-page">
-        <div class="landing-content">
-            <h1 class="glitch">ECOVERSE</h1>
-            <p>FLIGHT MANAGEMENT SYSTEM v5.0</p>
-            <button id="enter-btn">INITIALIZE AVIONICS</button>
-        </div>
+    <div id="landing-page" style="display: none;">
+        <h1 class="glitch">ECOVERSE</h1>
+        <p class="text-white">FLIGHT MANAGEMENT SYSTEM v5.1</p>
+        <button id="enter-btn">INITIALIZE AVIONICS</button>
     </div>
 
     <main class="terminal-container" style="display: none;">
         <div class="terminal-header">
             <span>UNIT: 01-ECO | FMC-ELITE</span>
-            <div class="controls">
-                <div class="theme-swatches">
-                    <div class="swatch green" onclick="setTheme('theme-green')" title="Emerald"></div>
-                    <div class="swatch amber" onclick="setTheme('theme-amber')" title="Classic Amber"></div>
-                    <div class="swatch blue" onclick="setTheme('theme-blue')" title="Night Vision"></div>
-                    <div class="swatch red" onclick="setTheme('theme-red')" title="Emergency"></div>
-                </div>
-                <i class="fas fa-volume-up" id="sound-toggle"></i>
+            <div class="theme-swatches">
+                <div class="swatch green" onclick="setTheme('theme-green')"></div>
+                <div class="swatch amber" onclick="setTheme('theme-amber')"></div>
+                <div class="swatch blue" onclick="setTheme('theme-blue')"></div>
             </div>
         </div>
 
         <div id="terminal-content-wrapper">
             <div class="interactive-deck">
-                <div class="checklist-panel">
-                    <h3>PRE-FLIGHT</h3>
-                    <ul id="checklist">
-                        <li class="check-item">BATTERY MASTER</li>
-                        <li class="check-item">AVIONICS BUS</li>
-                        <li class="check-item">FUEL PUMPS</li>
-                        <li class="check-item">APU START</li>
-                    </ul>
-                </div>
-
                 <div id="flight-display">
                     <div id="horizon-instrument">
                         <div class="horizon-sky"></div>
                         <div class="horizon-ground"></div>
-                        <div class="horizon-line"></div>
-                        <div class="aircraft-symbol"></div>
                     </div>
                     <p>ARROWS TO FLY</p>
                 </div>
-
                 <div class="annunciator-panel">
-                    <button class="sys-btn" id="btn-ldg">LDG LT</button>
-                    <button class="sys-btn" id="btn-apu">APU</button>
-                    <button class="sys-btn" id="btn-belt">BELTS</button>
-                    <button class="sys-btn warning" id="btn-warn">WARN</button>
+                    <button class="sys-btn">LDG LT</button>
+                    <button class="sys-btn">APU</button>
+                    <button class="sys-btn warning">WARN</button>
                 </div>
             </div>
-
             <pre id="typing-output"></pre>
         </div>
         
@@ -73,12 +56,11 @@
         </div>
 
         <div class="input-line" id="input-line-container" style="display: none;">
-            <span id="prompt">PILOT@ECOVERSE ></span>
+            <span>PILOT@ECOVERSE ></span>
             <input type="text" id="command-input" spellcheck="false" autocomplete="off">
         </div>
 
         <div class="status-footer">
-            <span>SYS: STABLE</span>
             <span id="bank-status">ROLL: 0°</span>
             <span id="live-clock">00:00:00Z</span>
         </div>
