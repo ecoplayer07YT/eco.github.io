@@ -3,7 +3,7 @@ ECOVERSE v5.0 SYSTEM INITIALIZING...
 [ERROR] ❌ Car lover.
 [SUCCESS] ✅ Plane lover.
 [SUCCESS] PRIMARY FLIGHT DISPLAY CONNECTED.
-[SUCCESS] CLOUD SYNC: is-a.dev/ecoverse
+[SUCCESS] CLOUD SYNC: eco.is-a.dev
 
 =======================================================
 |          ECOVERSE - PRE-FLIGHT CHECKLIST (PFC)        |
