@@ -2,69 +2,111 @@
     --bg: #05070a;
     --primary: #00ff73; 
     --accent: #00e0ff;
-    --glow: rgba(0, 255, 115, 0.4);
+    --glow: rgba(0, 255, 115, 0.6);
     --font: 'VT323', monospace;
 }
 
+/* Base Styling */
 body { 
     background: var(--bg); 
     color: var(--primary); 
     font-family: var(--font); 
     margin: 0; 
-    overflow: hidden; 
-    height: 100vh;
+    height: 100vh; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    overflow: hidden;
 }
 
-/* THE GLOW ENGINE */
-#typing-output, .text-success, .text-error, .text-accent, .text-white {
+/* 1. Landing Page Fix (Centering everything) */
+#landing-page {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.glitch {
+    font-size: 5rem;
+    margin: 0;
+    color: var(--primary);
+    text-shadow: 0 0 15px var(--glow);
     font-weight: bold;
-    letter-spacing: 1px;
-    /* This creates the "bloom" effect on the letters */
 }
 
-.text-error { 
-    color: #ff3e3e !important; 
-    text-shadow: 0 0 8px #ff3e3e, 0 0 15px rgba(255, 0, 0, 0.5); 
+#enter-btn {
+    margin-top: 20px;
+    background: transparent;
+    color: var(--primary);
+    border: 2px solid var(--primary);
+    padding: 15px 40px;
+    font-family: var(--font);
+    font-size: 1.5rem;
+    cursor: pointer;
+    box-shadow: 0 0 10px var(--glow);
+    transition: 0.3s;
 }
 
-.text-success { 
-    color: #00ff73 !important; 
-    text-shadow: 0 0 8px #00ff73, 0 0 15px rgba(0, 255, 115, 0.5); 
+#enter-btn:hover {
+    background: var(--primary);
+    color: var(--bg);
+    box-shadow: 0 0 25px var(--primary);
 }
 
-.text-accent { 
-    color: #00e0ff !important; 
-    text-shadow: 0 0 8px #00e0ff, 0 0 15px rgba(0, 224, 255, 0.5); 
-}
-
-.text-white { 
-    color: #ffffff !important; 
-    text-shadow: 0 0 8px #ffffff, 0 0 12px rgba(255, 255, 255, 0.4); 
+/* 2. Terminal Glow & Text Fix */
+.terminal-container {
+    width: 90vw;
+    height: 90vh;
+    border: 3px solid var(--primary);
+    background: rgba(0, 0, 0, 0.95);
+    box-shadow: 0 0 30px var(--glow), inset 0 0 15px var(--glow);
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
 #typing-output {
-    color: var(--primary);
-    text-shadow: 0 0 5px var(--primary);
-    line-height: 1.4;
-    font-size: 1.25rem; /* Slightly larger for readability */
+    font-size: 1.4rem; /* Making it bigger and bolder */
+    line-height: 1.5;
+    font-weight: 900;
+    text-shadow: 0 0 8px var(--primary);
 }
 
-/* Scanline Overlay - Makes it look like an old monitor */
-.scanlines {
+/* 3. Master Warning Fix (Make it hidden by default) */
+#master-warning-overlay {
     position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: linear-gradient(
-        rgba(18, 16, 16, 0) 50%, 
-        rgba(0, 0, 0, 0.15) 50%
-    );
-    background-size: 100% 3px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #ff3e3e;
+    font-size: 6rem;
+    font-weight: bold;
+    z-index: 5000;
+    display: none; /* Logic in script.js shows this */
+    text-shadow: 0 0 30px red;
     pointer-events: none;
-    z-index: 100;
 }
 
-/* Container Glow */
-.terminal-container {
-    border: 2px solid var(--primary);
-    box-shadow: 0 0 20px var(--glow), inset 0 0 10px var(--glow);
-    background: rgba(0, 0, 0, 0.9);
+/* 4. Formatting Colors */
+.text-error { color: #ff3e3e !important; text-shadow: 0 0 10px red; font-weight: bold; }
+.text-success { color: #00ff73 !important; text-shadow: 0 0 10px #00ff73; font-weight: bold; }
+.text-accent { color: #00e0ff !important; text-shadow: 0 0 10px #00e0ff; font-weight: bold; }
+.text-white { color: #ffffff !important; text-shadow: 0 0 10px white; font-weight: bold; }
+
+/* 5. Horizon Instrument Size */
+#horizon-instrument {
+    width: 150px;
+    height: 150px;
+    border: 4px solid var(--primary);
+    border-radius: 50%;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 10px;
 }
