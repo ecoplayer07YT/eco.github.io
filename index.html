@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ECOVERSE // FLIGHT MANAGEMENT SYSTEM</title>
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary:#00ff41;--primary-dim:#00aa2b;--primary-faint:#003d10;
+  --bg:#000800;--bg2:#001200;--accent:#00ffaa;--warn:#ff2222;
+  --glow:0 0 3px #00ff41,0 0 7px #00ff41,0 0 18px #00ff41,0 0 36px #00cc33;
+  --glow-dim:0 0 2px #00ff41,0 0 6px #00aa2b;
+  --text-shadow:0 0 2px var(--primary),0 0 6px var(--primary),0 0 14px var(--primary-dim);
+  --border:1px solid var(--primary-dim);
+}
+body.theme-amber{--primary:#ffb000;--primary-dim:#cc8800;--primary-faint:#3d2800;--bg:#0a0500;--bg2:#150a00;--accent:#ffdd44;--glow:0 0 3px #ffb000,0 0 7px #ffb000,0 0 18px #ffb000,0 0 36px #cc8800;--glow-dim:0 0 2px #ffb000,0 0 6px #cc8800;--text-shadow:0 0 2px var(--primary),0 0 6px var(--primary),0 0 14px var(--primary-dim);--border:1px solid var(--primary-dim);}
+body.theme-blue{--primary:#00cfff;--primary-dim:#008fb5;--primary-faint:#001a2a;--bg:#000510;--bg2:#000a1a;--accent:#44eeff;--glow:0 0 3px #00cfff,0 0 7px #00cfff,0 0 18px #00cfff,0 0 36px #0099cc;--glow-dim:0 0 2px #00cfff,0 0 6px #008fb5;--text-shadow:0 0 2px var(--primary),0 0 6px var(--primary),0 0 14px var(--primary-dim);--border:1px solid var(--primary-dim);}
+body.theme-red{--primary:#ff3333;--primary-dim:#cc1111;--primary-faint:#2a0000;--bg:#080000;--bg2:#100000;--accent:#ff8844;--glow:0 0 3px #ff3333,0 0 7px #ff3333,0 0 18px #ff3333,0 0 36px #cc1111;--glow-dim:0 0 2px #ff3333,0 0 6px #cc1111;--text-shadow:0 0 2px var(--primary),0 0 6px var(--primary),0 0 14px var(--primary-dim);--border:1px solid var(--primary-dim);}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;background:var(--bg);color:var(--primary);font-family:'VT323',monospace;font-size:18px;overflow:hidden;transition:background 0.4s,color 0.4s;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+
+/* Typing-block cursor on hover */
+body{cursor:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='20'><rect x='1' y='2' width='12' height='16' fill='%2300ff41' rx='1' opacity='.85'/></svg>") 6 18,text;}
+
+/* ── CRT ── */
+#scanlines{position:fixed;inset:0;z-index:9999;pointer-events:none;background:repeating-linear-gradient(to bottom,transparent 0,transparent 2px,rgba(0,0,0,.09) 2px,rgba(0,0,0,.09) 4px);animation:scanroll 8s linear infinite;}
+#vignette{position:fixed;inset:0;z-index:9998;pointer-events:none;background:radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.55) 100%);}
+#crt-flicker{position:fixed;inset:0;z-index:9997;pointer-events:none;animation:flicker .15s infinite;}
+@keyframes scanroll{100%{background-position:0 100px}}
+@keyframes flicker{0%,100%{opacity:1}93%{opacity:.97}96%{opacity:.98}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes pulse-warn{0%,100%{text-shadow:0 0 5px #f00,0 0 15px #f00,0 0 40px #c00}50%{text-shadow:0 0 10px #f44,0 0 30px #f22,0 0 80px #f00,0 0 120px #800}}
+
+/* ── MAINTENANCE ── */
+#maintenance-screen{position:fixed;inset:0;z-index:5000;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;}
+.m-title{font-size:clamp(26px,7vw,52px);color:#f22;text-shadow:0 0 5px #f00,0 0 15px #f00,0 0 40px #c00;letter-spacing:4px;animation:pulse-warn 1s infinite;text-align:center;}
+.m-sub{font-size:clamp(13px,3vw,20px);color:#a00;letter-spacing:8px;animation:blink 1.5s step-end infinite;text-align:center;}
+.m-hint{font-size:clamp(11px,2.5vw,15px);color:#440000;letter-spacing:3px;margin-top:30px;text-align:center;}
+.m-ascii{font-size:clamp(7px,1.4vw,11px);line-height:1.15;color:#550000;white-space:pre;text-align:center;}
+#m-tapbtn{display:none;font-family:'VT323',monospace;font-size:20px;color:#f22;background:transparent;border:2px solid #550000;padding:10px 30px;letter-spacing:4px;cursor:pointer;animation:pulse-warn 1s infinite;margin-top:10px;}
+
+/* ── LANDING ── */
+#landing-screen{position:fixed;inset:0;z-index:4000;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;gap:22px;}
+.glitch{font-size:clamp(44px,11vw,88px);color:var(--primary);text-shadow:var(--glow);letter-spacing:10px;position:relative;animation:gm 3s infinite;text-align:center;}
+.glitch::before{content:attr(data-text);position:absolute;inset:0;color:#f05;clip-path:polygon(0 20%,100% 20%,100% 35%,0 35%);animation:gs1 3s infinite;opacity:.8;}
+.glitch::after{content:attr(data-text);position:absolute;inset:0;color:#0ff;clip-path:polygon(0 65%,100% 65%,100% 80%,0 80%);animation:gs2 3s infinite;opacity:.8;}
+@keyframes gm{0%,90%,100%{transform:translate(0)}91%{transform:translate(-3px,1px)}93%{transform:translate(3px,-1px)}95%{transform:translate(-2px,2px)}}
+@keyframes gs1{0%,89%,100%{opacity:0}90%{transform:translate(-5px,0);opacity:.8}92%{transform:translate(5px,0);opacity:.8}94%{opacity:0}}
+@keyframes gs2{0%,89%,100%{opacity:0}91%{transform:translate(5px,0);opacity:.8}93%{transform:translate(-5px,0);opacity:.8}95%{opacity:0}}
+.l-sub{font-size:clamp(12px,3vw,19px);color:var(--primary-dim);text-shadow:var(--glow-dim);letter-spacing:6px;text-align:center;}
+#init-btn{font-family:'VT323',monospace;font-size:clamp(18px,4vw,28px);color:var(--bg);background:var(--primary);border:none;padding:13px 46px;letter-spacing:5px;cursor:pointer;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);animation:bp 2s infinite;}
+#init-btn:hover,#init-btn:active{transform:scale(1.04);filter:brightness(1.3);}
+@keyframes bp{0%,100%{box-shadow:0 0 10px var(--primary),0 0 30px var(--primary-dim)}50%{box-shadow:0 0 20px var(--primary),0 0 50px var(--primary),0 0 80px var(--primary-dim)}}
+.pills{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+.pill{font-family:'VT323',monospace;font-size:14px;border:1px solid var(--primary-dim);background:var(--primary-faint);color:var(--primary);padding:4px 14px;cursor:pointer;letter-spacing:2px;transition:all .2s;}
+.pill:hover,.pill:active{background:var(--primary);color:var(--bg);box-shadow:0 0 8px var(--primary);}
+
+/* ── BOOT ── */
+#boot-screen{position:fixed;inset:0;z-index:3000;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:32px;}
+.b-logo{font-size:clamp(26px,5vw,46px);color:var(--primary);text-shadow:var(--glow);letter-spacing:8px;text-align:center;}
+.b-log{width:min(640px,90vw);height:230px;overflow:hidden;font-size:clamp(11px,1.8vw,14px);line-height:1.65;color:var(--primary-dim);text-shadow:var(--glow-dim);border:var(--border);padding:10px 14px;background:var(--bg2);position:relative;}
+.b-log::after{content:'';position:absolute;bottom:0;left:0;right:0;height:55px;background:linear-gradient(transparent,var(--bg2));}
+.b-pw{width:min(640px,90vw);}
+.b-pl{font-size:13px;color:var(--primary-dim);letter-spacing:3px;margin-bottom:5px;display:flex;justify-content:space-between;}
+.b-pb{width:100%;height:20px;background:var(--primary-faint);border:var(--border);overflow:hidden;position:relative;}
+.b-pf{height:100%;background:linear-gradient(90deg,var(--primary-dim),var(--primary),var(--accent));width:0%;transition:width .1s;box-shadow:0 0 10px var(--primary);}
+.b-pb::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0,transparent 8px,rgba(0,0,0,.2) 8px,rgba(0,0,0,.2) 10px);}
+
+/* ── MAIN ── */
+#main-terminal{position:fixed;inset:0;z-index:2000;background:var(--bg);display:none;flex-direction:column;overflow:hidden;}
+.topbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:5px 12px;border-bottom:var(--border);background:var(--bg2);font-size:clamp(10px,1.5vw,13px);color:var(--primary-dim);text-shadow:var(--glow-dim);flex-shrink:0;gap:5px;}
+.topbar-l{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.badge{background:var(--primary-faint);border:var(--border);padding:1px 7px;font-size:12px;color:var(--accent);text-shadow:0 0 5px var(--accent);}
+
+/* DESKTOP GRID */
+.tgrid{display:grid;grid-template-columns:255px 1fr 255px;grid-template-rows:1fr auto;flex:1;overflow:hidden;min-height:0;}
+.lpanel{border-right:var(--border);padding:9px;display:flex;flex-direction:column;gap:9px;overflow-y:auto;}
+.rpanel{border-left:var(--border);padding:9px;display:flex;flex-direction:column;gap:9px;overflow-y:auto;}
+
+/* MOBILE — stack everything vertically, main output gets space */
+@media(max-width:900px){
+  #main-terminal{flex-direction:column;}
+  .tgrid{
+    display:flex;flex-direction:column;
+    flex:1;overflow:hidden;min-height:0;
+  }
+  .lpanel{
+    border-right:none;border-bottom:var(--border);
+    flex-direction:row;flex-wrap:nowrap;
+    overflow-x:auto;overflow-y:hidden;
+    flex-shrink:0;
+    padding:8px;gap:8px;
+    max-height:none;height:auto;
+    /* snap-scroll horizontally */
+    scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch;
+  }
+  .lpanel > *{
+    scroll-snap-align:start;
+    flex-shrink:0;
+    width:220px;
+  }
+  .lpanel .pfd-wrap{width:220px;}
+  .rpanel{display:none;}
+  .cpanel{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;}
+  .sstrip{font-size:10px;flex-wrap:wrap;gap:4px;padding:4px 8px;flex-shrink:0;}
+}
+
+@media(max-width:560px){
+  .lpanel > *{width:200px;}
+  .lpanel .pfd-wrap{width:200px;}
+  .topbar{font-size:10px;}
+  .badge{display:none;}
+  #main-output{font-size:14px;}
+  .cprompt{font-size:14px;}
+  #cli-input{font-size:14px;}
+  .cheader{padding:5px 10px;}
+  .ctitle{font-size:16px;letter-spacing:3px;}
+}
+.lpanel::-webkit-scrollbar,.rpanel::-webkit-scrollbar{width:3px;}
+.lpanel::-webkit-scrollbar-thumb,.rpanel::-webkit-scrollbar-thumb{background:var(--primary-dim);}
+
+/* PFD */
+.pfd-wrap{display:flex;flex-direction:column;align-items:center;gap:7px;}
+.pfd-lbl{font-size:11px;color:var(--primary-dim);text-shadow:var(--glow-dim);letter-spacing:3px;}
+.pfd-ring{width:196px;height:196px;border-radius:50%;border:2px solid var(--primary-dim);box-shadow:0 0 8px var(--primary-dim),inset 0 0 12px rgba(0,0,0,.5);overflow:hidden;position:relative;}
+@media(max-width:900px){.pfd-ring{width:150px;height:150px;}}
+/* KEY FIX: horizon is 200% tall, positioned so midpoint aligns with circle centre */
+#pfd-horizon{
+  width:100%;height:200%;
+  position:absolute;top:-50%;left:0;
+  background:linear-gradient(to bottom,#0d4a8a 0%,#1a6fb8 49.5%,#5c3a1e 50.5%,#3a2010 100%);
+  transform-origin:center center; /* rotate around centre of the 200% element = circle centre */
+  transition:transform .12s ease-out;
+  will-change:transform;
+}
+.pfd-ov{position:absolute;inset:0;pointer-events:none;}
+.pfd-hl{position:absolute;top:50%;left:10%;width:80%;height:2px;background:var(--primary);box-shadow:0 0 5px var(--primary);transform:translateY(-50%);}
+.pfd-ac{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:17px;color:var(--primary);text-shadow:var(--glow);white-space:nowrap;}
+.pfd-ri{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--primary-dim);background:rgba(0,0,0,.5);padding:1px 4px;white-space:nowrap;}
+.pitch-l{position:absolute;left:25%;width:50%;height:1px;background:rgba(0,255,65,.3);}
+.pfd-data{display:grid;grid-template-columns:1fr 1fr;gap:3px;width:100%;}
+.pfd-d{background:var(--bg2);border:var(--border);padding:3px 5px;text-align:center;}
+.pfd-dl{font-size:10px;color:var(--primary-dim);letter-spacing:1px;}
+.pfd-dv{font-size:17px;color:var(--primary);text-shadow:var(--text-shadow);}
+
+/* MOBILE ROLL BTNS */
+#roll-btns{display:none;justify-content:center;gap:10px;margin-top:3px;}
+#roll-btns button{font-family:'VT323',monospace;font-size:20px;color:var(--primary);background:var(--primary-faint);border:var(--border);padding:5px 14px;cursor:pointer;letter-spacing:2px;-webkit-user-select:none;user-select:none;}
+#roll-btns button:active{background:var(--primary);color:var(--bg);}
+@media(max-width:900px){#roll-btns{display:flex;}}
+
+.sp{border:var(--border);background:var(--bg2);padding:7px;}
+.sp-title{font-size:11px;color:var(--accent);text-shadow:0 0 5px var(--accent);letter-spacing:3px;border-bottom:var(--border);margin-bottom:6px;padding-bottom:3px;}
+.sp-row{display:flex;justify-content:space-between;font-size:12px;color:var(--primary-dim);text-shadow:var(--glow-dim);line-height:1.8;}
+.sp-val{color:var(--primary);text-shadow:var(--text-shadow);}
+
+/* CENTER */
+.cpanel{display:flex;flex-direction:column;overflow:hidden;min-height:0;flex:1;}
+.cheader{padding:7px 13px;border-bottom:var(--border);background:var(--bg2);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
+.ctitle{font-size:clamp(15px,2.8vw,21px);color:var(--primary);text-shadow:var(--glow);letter-spacing:5px;}
+.cbadge{font-size:12px;color:var(--accent);text-shadow:0 0 5px var(--accent);border:1px solid var(--accent);padding:2px 9px;animation:blink 2s step-end infinite;}
+#main-output{flex:1;min-height:0;overflow-y:scroll;overflow-x:hidden;padding:11px 15px;font-size:clamp(13px,1.8vw,15px);line-height:1.75;color:var(--primary-dim);text-shadow:var(--glow-dim);}
+#main-output::-webkit-scrollbar{display:none;}
+#main-output{-ms-overflow-style:none;scrollbar-width:none;}
+
+#typewriter-cursor{display:inline-block;width:9px;height:17px;background:var(--primary);box-shadow:var(--glow);animation:blink .8s step-end infinite;vertical-align:middle;}
+
+.clipanel{border-top:2px solid var(--primary);background:var(--bg2);padding:6px 11px;display:flex;flex-direction:column;gap:3px;flex-shrink:0;}
+.clihist{max-height:75px;overflow-y:auto;font-size:12px;color:var(--primary-dim);text-shadow:var(--glow-dim);}
+.clihist::-webkit-scrollbar{display:none;}
+.cli-row{display:flex;align-items:center;gap:6px;}
+.cprompt{font-size:clamp(13px,2.5vw,17px);color:var(--accent);text-shadow:0 0 5px var(--accent);white-space:nowrap;}
+#cli-input{flex:1;background:transparent;border:none;outline:none;font-family:'VT323',monospace;font-size:clamp(13px,2.5vw,17px);color:var(--primary);text-shadow:var(--text-shadow);caret-color:var(--primary);}
+#cli-input::placeholder{color:var(--primary-faint);}
+
+/* NAV COMPASS */
+.nav-d{border:var(--border);background:var(--bg2);padding:9px;display:flex;flex-direction:column;align-items:center;gap:5px;}
+.nav-co{width:164px;height:164px;border-radius:50%;border:2px solid var(--primary-dim);position:relative;display:flex;align-items:center;justify-content:center;box-shadow:0 0 10px var(--primary-faint),inset 0 0 20px rgba(0,0,0,.8);}
+.c-ring{position:absolute;inset:0;border-radius:50%;}
+.c-tick{position:absolute;width:2px;background:var(--primary-dim);left:50%;transform-origin:50% 100%;bottom:50%;}
+.c-lbl{position:absolute;font-size:13px;color:var(--primary);text-shadow:var(--text-shadow);transform:translate(-50%,-50%);}
+.nav-n{width:4px;height:62px;position:absolute;bottom:50%;left:calc(50% - 2px);transform-origin:50% 100%;background:linear-gradient(to top,transparent,var(--warn));box-shadow:0 0 6px var(--warn);transition:transform .5s;}
+.nav-nb{width:4px;height:46px;position:absolute;top:50%;left:calc(50% - 2px);transform-origin:50% 0%;background:linear-gradient(to bottom,transparent,var(--primary-dim));transition:transform .5s;}
+.nav-dot{width:11px;height:11px;border-radius:50%;background:var(--primary);box-shadow:var(--glow);position:absolute;z-index:2;}
+.nav-hdg{font-size:24px;color:var(--primary);text-shadow:var(--glow);letter-spacing:4px;}
+.pmini{height:9px;background:var(--primary-faint);border:var(--border);margin:3px 0;}
+.pmini-f{height:100%;background:var(--primary);box-shadow:0 0 5px var(--primary);}
+
+/* STATUS STRIP */
+.sstrip{border-top:var(--border);background:var(--bg2);padding:4px 13px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;font-size:clamp(9px,1.4vw,12px);color:var(--primary-dim);flex-shrink:0;gap:5px;width:100%;}
+.si{display:flex;gap:5px;align-items:center;}
+.sdot{width:7px;height:7px;border-radius:50%;background:var(--primary);box-shadow:0 0 5px var(--primary);animation:sdp 2s ease-in-out infinite;}
+@keyframes sdp{0%,100%{box-shadow:0 0 5px var(--primary)}50%{box-shadow:0 0 12px var(--primary),0 0 25px var(--primary-dim)}}
+
+/* BANK ANGLE */
+#baw{position:fixed;inset:0;z-index:8000;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(80,0,0,.25);pointer-events:none;animation:bf .4s step-end infinite;}
+.bat{font-size:clamp(42px,11vw,96px);color:#f22;text-shadow:0 0 10px #f00,0 0 30px #f00,0 0 80px #c00;letter-spacing:6px;text-align:center;}
+@keyframes bf{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* ══ DANGER OVERLAY ══ */
+#danger-ov{position:fixed;inset:0;z-index:9200;background:#000;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:20px;}
+#danger-ov.active{display:flex;}
+#d-nums{font-size:clamp(11px,2vw,17px);color:#880000;white-space:pre;text-align:center;line-height:1.7;animation:nc .18s step-end infinite;}
+@keyframes nc{0%,100%{opacity:1;letter-spacing:1px}50%{opacity:.55;letter-spacing:3px}}
+.d-inop{font-size:clamp(20px,5vw,46px);color:#f00;text-shadow:0 0 10px #f00,0 0 30px #c00;letter-spacing:6px;animation:pulse-warn .35s infinite;text-align:center;}
+.d-plane{font-size:clamp(36px,9vw,76px);animation:fall 3.5s ease-in forwards;display:block;text-align:center;}
+@keyframes fall{0%{transform:translateY(-50px) rotate(0deg);opacity:1}35%{transform:translateY(15px) rotate(-12deg);opacity:1}70%{transform:translateY(70px) rotate(-50deg);opacity:.7}100%{transform:translateY(150px) rotate(-88deg);opacity:0}}
+.d-crashed{font-size:clamp(28px,7vw,64px);color:#f33;text-shadow:0 0 15px #f00,0 0 40px #a00;letter-spacing:8px;text-align:center;display:none;}
+.d-restart{font-size:clamp(11px,2.5vw,17px);color:#550000;letter-spacing:4px;text-align:center;display:none;animation:blink 1.5s step-end infinite;}
+#d-f8btn{display:none;font-family:'VT323',monospace;font-size:19px;color:#f22;background:transparent;border:2px solid #550000;padding:9px 28px;letter-spacing:4px;cursor:pointer;animation:pulse-warn 1s infinite;}
+
+/* SPAN HELPERS */
+.sa{color:var(--accent);text-shadow:0 0 5px var(--accent);}
+.sw{color:var(--warn);text-shadow:0 0 5px var(--warn);}
+.sb{color:var(--primary);text-shadow:var(--glow);}
+.sd{color:var(--primary-dim);}
+</style>
+</head>
+<body>
+
+<div id="scanlines"></div>
+<div id="vignette"></div>
+<div id="crt-flicker"></div>
+
+<!-- BANK ANGLE WARNING -->
+<div id="baw">
+  <div class="bat">BANK ANGLE</div>
+  <div style="font-size:clamp(16px,4vw,26px);color:#f66;text-shadow:0 0 10px #f00;letter-spacing:8px;text-align:center;margin-top:8px;">▲ PULL UP ▲</div>
+</div>
+
+<!-- ═══ DANGER / CRASH ═══ -->
+<div id="danger-ov">
+  <div id="d-nums">FMS ALT: ████ → ERROR
+ENG 1 N1: ▓▓▒▒░░ → STALL
+ENG 2 N1: ████▓▒ → SURGE
+FUEL L: 10000 KG → LEAK
+FUEL R: 10000 KG → LEAK
+HYD GREEN: ▓▒░ → LOSS
+TERRAIN: PULL UP PULL UP</div>
+  <div class="d-inop" id="d-inop">. SYSTEM INOPERABLE .</div>
+  <div class="d-plane" id="d-plane">✈</div>
+  <div class="d-crashed" id="d-crashed">💥 SYSTEM CRASHED 💥</div>
+  <div class="d-restart" id="d-restart">[ PRESS F8 TO RESTART ]</div>
+  <button id="d-f8btn" onclick="restartDanger()">▶ RESTART SYSTEM</button>
+</div>
+
+<!-- ═══ MAINTENANCE ═══ -->
+<div id="maintenance-screen">
+  <pre class="m-ascii">
+ ╔══════════════════════════════════════════════════╗
+ ║    AIRBUS A320 FLIGHT MANAGEMENT SYSTEM v4.12   ║
+ ║         ECOVERSE AVIONICS SUITE  REV.88         ║
+ ╚══════════════════════════════════════════════════╝</pre>
+  <div class="m-title">⚠ SYSTEM OFFLINE ⚠</div>
+  <div class="m-sub">MAINTENANCE IN PROGRESS</div>
+  <pre class="m-ascii" style="margin-top:12px;color:#330000;">
+  ████████████  [LOCKED]  ████████████
+  CODE: 0xDEAD — AUTHORIZATION REQUIRED
+  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░</pre>
+  <div class="m-hint" id="m-hint">[ PRESS F8 TO AUTHORIZE OVERRIDE ]</div>
+  <button id="m-tapbtn" onclick="unlockMaint()">▶ AUTHORIZE OVERRIDE</button>
+</div>
+
+<!-- ═══ LANDING ═══ -->
+<div id="landing-screen">
+  <div style="font-size:clamp(10px,2vw,13px);color:var(--primary-dim);letter-spacing:6px;text-shadow:var(--glow-dim);text-align:center;">AIRBUS FMS // ECOVERSE AVIONICS SUITE v4.12</div>
+  <div class="glitch" data-text="ECOVERSE">ECOVERSE</div>
+  <div class="l-sub">ELITE FLIGHT TERMINAL // CAIRO FIR</div>
+  <button id="init-btn" onclick="startBoot()">▶ INITIALIZE AVIONICS</button>
+  <div class="pills">
+    <div class="pill" onclick="setTheme('green')">■ GREEN</div>
+    <div class="pill" onclick="setTheme('amber')">■ AMBER</div>
+    <div class="pill" onclick="setTheme('blue')">■ BLUE</div>
+    <div class="pill" onclick="setTheme('red')">■ RED</div>
+  </div>
+  <div style="font-size:clamp(9px,2vw,13px);color:var(--primary-faint);letter-spacing:3px;text-align:center;">ALIAS: ECOVERSE | STUDENT PILOT | EGYPT | CAIRO FIR</div>
+</div>
+
+<!-- ═══ BOOT ═══ -->
+<div id="boot-screen">
+  <div class="b-logo">⊕ ECOVERSE FMS ⊕</div>
+  <div id="b-log" class="b-log"></div>
+  <div class="b-pw">
+    <div class="b-pl"><span>SYSTEM INITIALIZATION</span><span id="b-pct">0%</span></div>
+    <div class="b-pb"><div id="b-pf" class="b-pf"></div></div>
+  </div>
+</div>
+
+<!-- ═══ MAIN TERMINAL ═══ -->
+<div id="main-terminal">
+  <div class="topbar">
+    <div class="topbar-l">
+      <span style="color:var(--accent);text-shadow:0 0 5px var(--accent);font-size:17px;">⊕ ECOVERSE</span>
+      <span>AIRBUS FMS v4.12</span>
+      <span class="badge">CRUISE</span>
+      <span class="badge">SQWK 2200</span>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <span id="top-z">Z 00:00:00</span>
+      <span id="top-bd" style="color:var(--accent);text-shadow:0 0 5px var(--accent);">B/D: --</span>
+      <div class="pills" style="gap:5px;">
+        <div class="pill" onclick="setTheme('green')">G</div>
+        <div class="pill" onclick="setTheme('amber')">A</div>
+        <div class="pill" onclick="setTheme('blue')">B</div>
+        <div class="pill" onclick="setTheme('red')">R</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tgrid">
+    <!-- LEFT -->
+    <div class="lpanel">
+      <div class="pfd-wrap">
+        <div class="pfd-lbl">◈ PRIMARY FLIGHT DISPLAY ◈</div>
+        <div class="pfd-ring">
+          <div id="pfd-horizon"></div>
+          <div class="pfd-ov">
+            <div class="pfd-hl"></div>
+            <div class="pitch-l" style="top:38%;"></div>
+            <div class="pitch-l" style="top:62%;"></div>
+            <div class="pfd-ac">──◆──</div>
+            <div class="pfd-ri" id="roll-ri">ROLL: 0°</div>
+          </div>
+        </div>
+        <div id="roll-btns">
+          <button ontouchstart="mobileRoll(-1)" ontouchend="mobileStop()" onmousedown="mobileRoll(-1)" onmouseup="mobileStop()">◀ LEFT</button>
+          <button onclick="resetRoll()">▲ LVL</button>
+          <button ontouchstart="mobileRoll(1)" ontouchend="mobileStop()" onmousedown="mobileRoll(1)" onmouseup="mobileStop()">RIGHT ▶</button>
+        </div>
+        <div class="pfd-data">
+          <div class="pfd-d"><div class="pfd-dl">ALT</div><div class="pfd-dv" id="pfd-alt">FL350</div></div>
+          <div class="pfd-d"><div class="pfd-dl">IAS KT</div><div class="pfd-dv" id="pfd-ias">245</div></div>
+          <div class="pfd-d"><div class="pfd-dl">V/S</div><div class="pfd-dv" id="pfd-vs">+000</div></div>
+          <div class="pfd-d"><div class="pfd-dl">HDG</div><div class="pfd-dv" id="pfd-hdg">270°</div></div>
+        </div>
+      </div>
+
+      <div class="sp">
+        <div class="sp-title">◈ ECAM SYSTEMS ◈</div>
+        <div class="sp-row"><span>ENG 1</span><span class="sp-val" id="e1">94.2%</span></div>
+        <div class="sp-row"><span>ENG 2</span><span class="sp-val" id="e2">93.8%</span></div>
+        <div class="sp-row"><span>FUEL L</span><span class="sp-val" id="f-l">8421 KG</span></div>
+        <div class="sp-row"><span>FUEL R</span><span class="sp-val" id="f-r">8399 KG</span></div>
+        <div class="sp-row"><span>HYD GRN</span><span class="sp-val" style="color:#00ff41">3000 PSI</span></div>
+        <div class="sp-row"><span>GEAR</span><span class="sp-val">UP/LOCKED</span></div>
+      </div>
+
+      <div class="sp">
+        <div class="sp-title">◈ CONTROLS ◈</div>
+        <div class="sp-row"><span>← → ROLL</span><span class="sp-val">±5°</span></div>
+        <div class="sp-row"><span>↑ RESET</span><span class="sp-val">LVWINGS</span></div>
+        <div class="sp-row"><span>&gt;30°</span><span class="sp-val" style="color:var(--warn)">BANK WRN</span></div>
+      </div>
+    </div>
+
+    <!-- CENTER -->
+    <div class="cpanel">
+      <div class="cheader">
+        <div class="ctitle">FMS MCDU</div>
+        <div style="display:flex;gap:9px;align-items:center;">
+          <span style="font-size:11px;color:var(--primary-dim);">ECOVERSE / STUDENT PILOT</span>
+          <div class="cbadge">● ACTIVE</div>
+        </div>
+      </div>
+      <div id="main-output"><span id="typewriter-cursor"></span></div>
+      <div class="clipanel">
+        <div class="clihist" id="clihist"></div>
+        <div class="cli-row">
+          <span class="cprompt">ECOVERSE@FMS:~$&nbsp;</span>
+          <input type="text" id="cli-input" placeholder="TYPE A COMMAND..." autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="characters">
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="rpanel">
+      <div class="nav-d">
+        <div class="sp-title" style="width:100%;text-align:center;border-bottom:none;">◈ NAVIGATION ◈</div>
+        <div class="nav-co" id="c-outer">
+          <div class="c-ring" id="c-ring"></div>
+          <div class="nav-n" id="nav-n"></div>
+          <div class="nav-nb" id="nav-nb"></div>
+          <div class="nav-dot"></div>
+        </div>
+        <div class="nav-hdg" id="nav-hdg">270°</div>
+      </div>
+
+      <div class="sp">
+        <div class="sp-title">◈ FLIGHT PROG ◈</div>
+        <div class="sp-row"><span>ORIGIN</span><span class="sp-val">HECA</span></div>
+        <div class="sp-row"><span>DEST</span><span class="sp-val">EGLL</span></div>
+        <div class="sp-row"><span>ETE</span><span class="sp-val">04H 22M</span></div>
+        <div style="font-size:11px;color:var(--primary-dim);margin-top:4px;">FUEL ON BOARD</div>
+        <div class="pmini"><div class="pmini-f" id="fbar" style="width:78%"></div></div>
+        <div style="font-size:11px;color:var(--primary-dim);">ROUTE COMPLETE</div>
+        <div class="pmini"><div class="pmini-f" style="width:34%"></div></div>
+      </div>
+
+      <div class="sp">
+        <div class="sp-title">◈ PILOT PROFILE ◈</div>
+        <div class="sp-row"><span>ALIAS</span><span class="sp-val">ECOVERSE</span></div>
+        <div class="sp-row"><span>STATUS</span><span class="sp-val">STUDENT</span></div>
+        <div class="sp-row"><span>DREAM</span><span class="sp-val" style="font-size:11px;">A320 CAPTAIN</span></div>
+        <div class="sp-row"><span>BASE</span><span class="sp-val">EGYPT</span></div>
+        <div class="sp-row"><span>FIR</span><span class="sp-val">CAIRO LCCC</span></div>
+      </div>
+
+      <div class="sp">
+        <div class="sp-title">◈ METAR HECA ◈</div>
+        <div style="font-size:12px;color:var(--primary-dim);line-height:1.85;">
+          WIND 270/12KT<br>VIS 9999 SKC<br>T:32/DP:14<br>QNH 1013 NOSIG
+        </div>
+      </div>
+    </div>
+
+    <!-- STATUS STRIP -->
+    <div class="sstrip">
+      <div class="si"><div class="sdot"></div><span>AVIONICS OK</span></div>
+      <div class="si"><span>Z:</span><span id="s-z" style="color:var(--primary);text-shadow:var(--text-shadow);">00:00:00</span></div>
+      <div class="si"><span>B/D:</span><span id="s-bd" style="color:var(--accent);text-shadow:0 0 5px var(--accent);">--D</span></div>
+      <div class="si"><span>ROLL:</span><span id="s-roll" style="color:var(--primary);text-shadow:var(--text-shadow);">0°</span></div>
+      <div class="si"><span>THEME:</span><span id="s-theme" style="color:var(--accent);">GREEN</span></div>
+      <div class="si"><span style="color:#00ff41;text-shadow:0 0 5px #00ff41;">ALL GREEN</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── AUDIO ── */
+let AC=null,bgG=null;
+function getAC(){if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();return AC;}
+function startHum(){const c=getAC();bgG=c.createGain();bgG.gain.setValueAtTime(0.04,c.currentTime);const o=c.createOscillator();o.type='sine';o.frequency.setValueAtTime(55,c.currentTime);o.connect(bgG);bgG.connect(c.destination);o.start();}
+function tick_snd(){try{const c=getAC();const o=c.createOscillator();const g=c.createGain();o.type='square';o.frequency.setValueAtTime(150+Math.random()*60,c.currentTime);g.gain.setValueAtTime(0.07,c.currentTime);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.055);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+0.055);}catch(e){}}
+function beep(f=880,d=0.12){try{const c=getAC();const o=c.createOscillator();const g=c.createGain();o.type='square';o.frequency.setValueAtTime(f,c.currentTime);g.gain.setValueAtTime(0.1,c.currentTime);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+d);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+d);}catch(e){}}
+function dangerSnd(){try{const c=getAC();const o=c.createOscillator();const g=c.createGain();o.type='sawtooth';o.frequency.setValueAtTime(110,c.currentTime);o.frequency.exponentialRampToValueAtTime(40,c.currentTime+2);g.gain.setValueAtTime(0.3,c.currentTime);g.gain.linearRampToValueAtTime(0,c.currentTime+2);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+2);}catch(e){}}
+document.addEventListener('click',()=>{if(AC&&AC.state==='suspended')AC.resume();});
+document.addEventListener('touchstart',()=>{if(AC&&AC.state==='suspended')AC.resume();},{passive:true});
+
+/* ── THEME ── */
+const THEMES=['green','amber','blue','red'];let tidx=0;
+function setTheme(n){document.body.className='';if(n!=='green')document.body.classList.add('theme-'+n);tidx=Math.max(0,THEMES.indexOf(n));const s=document.getElementById('s-theme');if(s)s.textContent=n.toUpperCase();}
+function cycleTheme(){tidx=(tidx+1)%THEMES.length;setTheme(THEMES[tidx]);return'THEME: '+THEMES[tidx].toUpperCase();}
+
+/* ── SHOW STAGE ── */
+function showStage(id){
+  ['maintenance-screen','landing-screen','boot-screen','main-terminal'].forEach(s=>{const e=document.getElementById(s);if(e)e.style.display='none';});
+  const t=document.getElementById(id);if(!t)return;
+  t.style.opacity='0';t.style.display='flex';t.style.flexDirection='column';
+  requestAnimationFrame(()=>{t.style.transition='opacity .6s';t.style.opacity='1';});
+}
+
+/* ── MOBILE DETECT ── */
+function isMob(){return /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)||window.innerWidth<700;}
+
+/* ── MAINTENANCE → LANDING ── */
+function unlockMaint(){
+  getAC();beep(440,.2);setTimeout(()=>beep(880,.15),200);
+  const ms=document.getElementById('maintenance-screen');
+  ms.style.transition='opacity .8s';ms.style.opacity='0';
+  setTimeout(()=>showStage('landing-screen'),800);
+}
+
+/* ── F8 KEY ── */
+document.addEventListener('keydown',function(e){
+  if(e.key==='F8'){
+    e.preventDefault();
+    const ms=document.getElementById('maintenance-screen');
+    const dng=document.getElementById('danger-ov');
+    if(ms&&parseFloat(ms.style.opacity||1)>0&&ms.style.display!=='none'){unlockMaint();}
+    else if(dng&&dng.classList.contains('active')){restartDanger();}
+  }
+  if(document.getElementById('main-terminal').style.display==='flex') flightKey(e);
+});
+
+/* ── BOOT ── */
+const BMSGS=[
+  'AIRBUS FMS BIOS v4.12.88 ... OK',
+  'INITIALIZING ADIRU 1/2/3 ...',
+  'ADIRU 1: ALIGN [CAIRO 30N 31E] ... OK',
+  'ADIRU 2: ALIGN COMPLETE','ADIRU 3: ALIGN COMPLETE',
+  'NAV DATABASE REV 2406: LOADED',
+  'VOR/DME/ILS/GPS: ONLINE',
+  'FMC ROUTE: HECA→P749→L603→EGLL',
+  'FUEL QTY: 16820 KG TOTAL',
+  'ENG 1 FADEC: ONLINE','ENG 2 FADEC: ONLINE',
+  'HYD GREEN: 3000 PSI','HYD YELLOW: 3000 PSI',
+  'A/P 1: ARMED','A/P 2: ARMED',
+  'TCAS II: ONLINE — TRAFFIC CLEAR',
+  'GPWS: ARMED','ACARS: CONNECTED',
+  'ATIS HECA: INFO KILO',
+  'METAR HECA: 270/12KT VIS9999 T32 QNH1013',
+  'CI:28 | FL350 | M.78',
+  'ECOVERSE PILOT PROFILE LOADED',
+  '>>> ALL SYSTEMS GO — CLEARED FOR DEPARTURE <<<',
+  'STARTING ECOVERSE TERMINAL ...'
+];
+function startBoot(){
+  getAC();startHum();showStage('boot-screen');
+  const log=document.getElementById('b-log');
+  const fill=document.getElementById('b-pf');
+  const pct=document.getElementById('b-pct');
+  log.innerHTML='';let i=0;
+  function nxt(){
+    if(i>=BMSGS.length){setTimeout(()=>{showStage('main-terminal');startMain();},500);return;}
+    const d=document.createElement('div');d.textContent='> '+BMSGS[i];
+    d.style.color=i===BMSGS.length-1?'var(--accent)':'var(--primary-dim)';
+    log.appendChild(d);log.scrollTop=log.scrollHeight;
+    beep(220+i*14,.042);i++;
+    const p=Math.min(100,Math.round(i/BMSGS.length*100));
+    fill.style.width=p+'%';pct.textContent=p+'%';
+    setTimeout(nxt,82+Math.random()*72);
+  }
+  nxt();
+}
+
+/* ── TYPEWRITER ── */
+const INTRO=`<span class="sb">╔══════════════════════════════════════════════════════════╗</span>
+<span class="sb">║         ECOVERSE FLIGHT MANAGEMENT SYSTEM v4.12         ║</span>
+<span class="sb">║              AIRBUS A320 AVIONICS SUITE                 ║</span>
+<span class="sb">╚══════════════════════════════════════════════════════════╝</span>
+
+<span class="sa">PILOT:</span> ECOVERSE  |  <span class="sa">STATUS:</span> STUDENT PILOT  |  <span class="sa">BASE:</span> CAIRO, EGYPT
+<span class="sa">DREAM:</span> COMMERCIAL PILOT — AIRBUS A320 CAPTAIN
+<span class="sa">FIR:</span> CAIRO LCCC  |  <span class="sa">ICAO:</span> HECA  |  <span class="sa">IATA:</span> CAI
+
+<span class="sb">──────────────────────────────────────────────────────────</span>
+
+<span class="sa">◈ CURRENT FLIGHT ◈</span>
+  ROUTE   : HECA → P749 → L603 → EGLL
+  CALLSIGN: ECO001 / SPEEDBIRD 9042
+  PHASE   : CRUISE FL350 M.78
+  ETA     : ON SCHEDULE
+
+<span class="sb">──────────────────────────────────────────────────────────</span>
+
+<span class="sa">◈ PILOT LOG ◈</span>
+  I am ECOVERSE — a student pilot from Egypt with one dream:
+  to command an Airbus A320 through the skies of the world.
+  This terminal is my cockpit, my study hall, my launchpad.
+  Every keystroke brings me closer to the flight deck.
+  The sky is not the limit — it is only the beginning.
+
+<span class="sb">──────────────────────────────────────────────────────────</span>
+
+<span class="sa">◈ COMMANDS ◈</span>
+  <span class="sb">HELP</span> · <span class="sb">STATUS</span> · <span class="sb">ATC</span> · <span class="sb">FUEL</span> · <span class="sb">WEATHER</span> · <span class="sb">METAR</span>
+  <span class="sb">CALLSIGN</span> · <span class="sb">SQUAWK</span> · <span class="sb">PILOT</span> · <span class="sb">TIME</span> · <span class="sb">THEME</span> · <span class="sb">CLEAR</span>
+  <span class="sw">[ ONE SECRET COMMAND HIDDEN — FIND IT ]</span>
+
+<span class="sb">══════════════════════════════════════════════════════════</span>
+`;
+
+let twAbort=false,sk=0;
+function parseH(html){const d=document.createElement('div');d.innerHTML=html;const s=[];wk(d,s,null);return s;}
+function wk(n,s,cls){n.childNodes.forEach(c=>{if(c.nodeType===3){s.push({text:c.textContent,cls,k:sk++});}else if(c.nodeType===1){if(c.tagName==='SPAN')wk(c,s,c.className);else wk(c,s,cls);}});}
+function typewrite(html,cont,done){
+  twAbort=false;
+  const oc=document.getElementById('typewriter-cursor');if(oc)oc.remove();
+  const segs=parseH(html);cont.innerHTML='';
+  const cur=document.createElement('span');cur.id='typewriter-cursor';cont.appendChild(cur);
+  let si=0,ci=0;
+  function step(){
+    if(twAbort)return;
+    if(si>=segs.length){if(done)done();return;}
+    const seg=segs[si];const txt=seg.text;
+    if(ci<txt.length){
+      const ch=txt[ci];
+      if(seg.cls){
+        let sp=cur.previousSibling;
+        if(!sp||sp.nodeType!==1||sp.dataset.k!==String(seg.k)){sp=document.createElement('span');sp.className=seg.cls;sp.dataset.k=String(seg.k);cont.insertBefore(sp,cur);}
+        sp.appendChild(document.createTextNode(ch));
+      } else {cont.insertBefore(document.createTextNode(ch),cur);}
+      ci++;if(ch!==' '&&ch!=='\n')tick_snd();
+      cont.scrollTop=cont.scrollHeight;
+      setTimeout(step,ch==='\n'?16:10);
+    } else {si++;ci=0;setTimeout(step,3);}
+  }
+  step();
+}
+
+/* ── MAIN START ── */
+function startMain(){
+  startClocks();startFlightSim();buildCompass();
+  typewrite(INTRO,document.getElementById('main-output'),()=>{document.getElementById('cli-input').focus();});
+  document.getElementById('cli-input').addEventListener('keydown',handleCLI);
+  document.getElementById('main-output').addEventListener('click',()=>document.getElementById('cli-input').focus());
+}
+
+/* ── CLI ── */
+const CH=[],ATC_L=[
+  'ECO001, CAIRO DEP, CLEARED EGLL VIA P749, SQWK 2241, CLIMB FL150',
+  'ECO001, CONTACT CAIRO RADAR 119.1, CLEARED FL350 DIRECT ODIVO',
+  'ECO001, TRAFFIC ALERT 12 O\'CLOCK 5NM, MAINTAIN FL350',
+  'ECO001, CAIRO DEL, CLEARED HECA→EGLL STANDARD DEP RWY 23L',
+  'ECO001, CROSS UNKOL FL360 M0.80, REPORT PASSING FL300',
+  'ECO001, IDENT CONFIRMED, CLEAR TO CLIMB FL390',
+  'ECO001, EXPECT APPROACH ILS 27L EGLL, DESCEND FL240 WHEN READY',
+],FUEL_L=[
+  'FUEL: 14820 KG — ENDURANCE 4H 22M — NOMINAL',
+  'FUEL: 12440 KG — ENDURANCE 3H 51M — NOMINAL',
+  'FUEL: 16200 KG — RESERVES ADEQUATE — NORMAL',
+  'FUEL: 9800 KG — LOW ADVISORY — CONSIDER ALTERNATE',
+  'FUEL: 18000 KG — FULL LOAD — NO RESTRICTION',
+],WX_L=[
+  'CAIRO(HECA): 270/12 VIS9999 SKC T32 QNH1013',
+  'LONDON(EGLL): 240/18 SCT025 T14 TS AREA QNH1008',
+  'ROME(LIRF): 200/8 BKN030 T22 QNH1015',
+  'DUBAI(OMDB): 310/22 VIS8000 DUST T41 QNH1008',
+  'PARIS(LFPG): 280/14 FEW020 T18 QNH1012',
+],CS_L=['ECO001','ECO777','ECO420','NILE01','PHARAOH88','CAIRO9','SPHINX01'],
+SQ_L=['2200','7000','2241','0047','1200','3344','5566'];
+let cliIdx=-1;
+
+function addL(html,color){
+  const h=document.getElementById('clihist');const d=document.createElement('div');
+  d.innerHTML=html;if(color)d.style.color=color;h.appendChild(d);h.scrollTop=h.scrollHeight;
+  while(h.children.length>12)h.removeChild(h.firstChild);
+}
+function handleCLI(e){
+  const inp=document.getElementById('cli-input');
+  if(e.key==='Enter'){
+    const cmd=inp.value.trim().toUpperCase();if(!cmd)return;
+    CH.unshift(cmd);cliIdx=-1;
+    addL('$ '+cmd,'var(--primary)');beep(330,.065);
+    processCmd(cmd);inp.value='';
+  }else if(e.key==='ArrowUp'){e.preventDefault();if(cliIdx<CH.length-1){cliIdx++;inp.value=CH[cliIdx];}}
+  else if(e.key==='ArrowDown'){e.preventDefault();if(cliIdx>0){cliIdx--;inp.value=CH[cliIdx];}else{cliIdx=-1;inp.value='';}}
+  else tick_snd();
+}
+
+function processCmd(cmd){
+  const c=s=>`<span style="color:var(--accent)">${s}</span>`;
+  const g=s=>`<span style="color:#00ff41">${s}</span>`;
+  const w=s=>`<span style="color:var(--warn)">${s}</span>`;
+  const p=s=>`<span style="color:var(--primary)">${s}</span>`;
+  switch(cmd){
+    case'HELP':
+      addL(c('COMMANDS: ')+['HELP','STATUS','ATC','FUEL','WEATHER','METAR','CALLSIGN','SQUAWK','PILOT','TIME','THEME','CLEAR'].map(x=>p(x)).join(' · '));break;
+    case'STATUS':
+      addL('SYS:'+g(' NOMINAL')+' | ENG:'+g(' NORMAL')+' | HYD:'+g(' 3000PSI')+' | FUEL:'+c(' 78%')+' | NAV:'+g(' ACTIVE'));break;
+    case'ATC':
+      addL(c('ATC: ')+ATC_L[0|Math.random()*ATC_L.length]);break;
+    case'FUEL':
+      addL(c('')+FUEL_L[0|Math.random()*FUEL_L.length]);break;
+    case'WEATHER':
+      addL(c('WX: ')+WX_L[0|Math.random()*WX_L.length]);break;
+    case'METAR':
+      addL(c('METAR HECA: ')+'270/12KT VIS9999 SKC T32/14 QNH1013 NOSIG');break;
+    case'CALLSIGN':
+      addL(c('CALLSIGN: ')+p(CS_L[0|Math.random()*CS_L.length]));break;
+    case'SQUAWK':
+      addL(c('SQUAWK: ')+p(SQ_L[0|Math.random()*SQ_L.length])+' — IDENT');break;
+    case'PILOT':
+      addL(c('PILOT: ')+'ECOVERSE | STUDENT | EGYPT | DREAM: A320 CAPTAIN | FIR: CAIRO LCCC');break;
+    case'TIME':
+      const now=new Date();addL(c('ZULU: ')+now.toUTCString().match(/\d{2}:\d{2}:\d{2}/)[0]+' UTC  |  LOCAL: '+now.toTimeString().slice(0,8));break;
+    case'THEME':
+      addL(c(cycleTheme()));break;
+    case'CLEAR':
+      document.getElementById('clihist').innerHTML='';break;
+    case'DANGER':
+      addL(w('⚠ INITIATING DANGER SEQUENCE — BRACE FOR IMPACT...'));
+      setTimeout(triggerDanger,900);break;
+    default:
+      addL(w('UNKNOWN CMD: '+cmd+' — TYPE HELP'));beep(110,.13);
+  }
+}
+
+/* ── DANGER SEQUENCE ── */
+function triggerDanger(){
+  setTheme('red');dangerSnd();beep(220,.5);
+  const ov=document.getElementById('danger-ov');ov.classList.add('active');
+  let t=0;
+  const corrupt=setInterval(()=>{
+    t++;
+    const el=document.getElementById('d-nums');if(!el){clearInterval(corrupt);return;}
+    const a=n=>Math.floor(Math.random()*n);
+    const v1=a(99999)-50000,v2=(Math.random()*100).toFixed(1),v3=(Math.random()*100).toFixed(1);
+    const f1=a(15000),f2=a(15000);
+    el.textContent=
+`FMS ALT: ${v1} FT ← INVALID
+ENG 1 N1: ${v2}% → ${Math.random()>.5?'STALL':'SURGE'}
+ENG 2 N1: ${v3}% → ${Math.random()>.5?'FLAME OUT':'SURGE'}
+FUEL L: ${f1} KG → ${Math.random()>.5?'LEAK':'ERROR'}
+FUEL R: ${f2} KG → ${Math.random()>.5?'LEAK':'ERROR'}
+HYD GREEN: ${a(3000)} PSI → LOSS
+TERRAIN: ${Math.random()>.5?'PULL UP PULL UP':'GPWS WARNING'}`;
+  },140);
+  setTimeout(()=>{
+    clearInterval(corrupt);
+    const el=document.getElementById('d-nums');if(el)el.textContent='>>> ALL SYSTEMS FAILED <<<\n. SYSTEM INOPERABLE .';
+    beep(55,1.2);dangerSnd();
+  },2200);
+  setTimeout(()=>{
+    document.getElementById('d-crashed').style.display='block';
+    document.getElementById('d-inop').style.display='none';
+    beep(110,.4);
+  },3600);
+  setTimeout(()=>{
+    document.getElementById('d-restart').style.display='block';
+    if(isMob())document.getElementById('d-f8btn').style.display='inline-block';
+  },4600);
+}
+function restartDanger(){
+  const ov=document.getElementById('danger-ov');ov.classList.remove('active');
+  // Reset danger elements for next time
+  const pl=document.getElementById('d-plane');pl.style.animation='none';void pl.offsetWidth;pl.style.animation='';
+  document.getElementById('d-crashed').style.display='none';
+  document.getElementById('d-restart').style.display='none';
+  document.getElementById('d-f8btn').style.display='none';
+  document.getElementById('d-inop').style.display='block';
+  document.getElementById('d-nums').textContent=
+`FMS ALT: ████ → ERROR
+ENG 1 N1: ▓▓▒▒░░ → STALL
+ENG 2 N1: ████▓▒ → SURGE
+FUEL L: 10000 KG → LEAK
+FUEL R: 10000 KG → LEAK
+HYD GREEN: ▓▒░ → LOSS
+TERRAIN: PULL UP PULL UP`;
+  setTheme('green');
+  showStage('maintenance-screen');
+  const ms=document.getElementById('maintenance-screen');ms.style.opacity='1';ms.style.transition='';
+}
+
+/* ── FLIGHT PHYSICS ── */
+let roll=0;const RSTEP=5;let rollTmr=null;
+function setRoll(r){roll=Math.max(-60,Math.min(60,r));updatePFD();}
+function mobileRoll(dir){mobileStop();setRoll(roll+dir*RSTEP);rollTmr=setInterval(()=>setRoll(roll+dir*RSTEP),120);}
+function mobileStop(){clearInterval(rollTmr);rollTmr=null;}
+function resetRoll(){mobileStop();setRoll(0);}
+function flightKey(e){
+  if(document.activeElement===document.getElementById('cli-input'))return;
+  if(e.key==='ArrowLeft'){e.preventDefault();setRoll(roll-RSTEP);}
+  if(e.key==='ArrowRight'){e.preventDefault();setRoll(roll+RSTEP);}
+  if(e.key==='ArrowUp'){e.preventDefault();resetRoll();}
+}
+function updatePFD(){
+  const h=document.getElementById('pfd-horizon');
+  if(h) h.style.transform='rotate('+roll+'deg)';
+  const ri=document.getElementById('roll-ri');if(ri)ri.textContent='ROLL: '+roll+'°';
+  const sr=document.getElementById('s-roll');if(sr){sr.textContent=roll+'°';sr.style.color=Math.abs(roll)>30?'var(--warn)':'var(--primary)';}
+  const baw=document.getElementById('baw');if(baw)baw.style.display=Math.abs(roll)>30?'flex':'none';
+}
+window.addEventListener('keydown',e=>{if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)&&document.activeElement!==document.getElementById('cli-input'))e.preventDefault();});
+
+/* ── COMPASS ── */
+let hdg=270;
+function buildCompass(){
+  const ring=document.getElementById('c-ring');if(!ring)return;ring.innerHTML='';
+  const cards={0:'N',90:'E',180:'S',270:'W'};
+  for(let d=0;d<360;d+=10){
+    const maj=d%30===0;const t=document.createElement('div');
+    t.className='c-tick';t.style.height=(maj?15:7)+'px';t.style.transform=`rotate(${d}deg)`;
+    ring.appendChild(t);
+    if(cards[d]){const l=document.createElement('div');l.className='c-lbl';
+      const r=62,rad=(d-90)*Math.PI/180;
+      l.style.left=(82+r*Math.cos(rad))+'px';l.style.top=(82+r*Math.sin(rad))+'px';
+      l.textContent=cards[d];ring.appendChild(l);}
+  }
+  setHdg(270);
+}
+function setHdg(h){
+  hdg=h;
+  const n=document.getElementById('nav-n');if(n)n.style.transform=`rotate(${h}deg)`;
+  const nb=document.getElementById('nav-nb');if(nb)nb.style.transform=`rotate(${h}deg)`;
+  const hr=document.getElementById('nav-hdg');if(hr)hr.textContent=String(Math.round(h)).padStart(3,'0')+'°';
+  const ph=document.getElementById('pfd-hdg');if(ph)ph.textContent=String(Math.round(h)).padStart(3,'0')+'°';
+}
+
+/* ── FLIGHT SIM ── */
+let fL=8421,fR=8399;
+function startFlightSim(){
+  setInterval(()=>{
+    hdg=(hdg+(Math.random()-.5)*.4+360)%360;setHdg(hdg);
+    const ias=document.getElementById('pfd-ias');if(ias)ias.textContent=245+Math.round((Math.random()-.5)*8);
+    const vs=document.getElementById('pfd-vs');if(vs){const v=Math.round((Math.random()-.5)*120);vs.textContent=(v>=0?'+':'')+v;}
+  },2000);
+  setInterval(()=>{
+    fL=Math.max(0,fL-.5-Math.random()*.3);fR=Math.max(0,fR-.5-Math.random()*.3);
+    const fl=document.getElementById('f-l');if(fl)fl.textContent=Math.round(fL)+' KG';
+    const fr=document.getElementById('f-r');if(fr)fr.textContent=Math.round(fR)+' KG';
+    const fb=document.getElementById('fbar');if(fb)fb.style.width=((fL+fR)/18000*100)+'%';
+  },5000);
+  setInterval(()=>{
+    const e1=document.getElementById('e1');if(e1)e1.textContent=(93+Math.random()*2).toFixed(1)+'%';
+    const e2=document.getElementById('e2');if(e2)e2.textContent=(93+Math.random()*2).toFixed(1)+'%';
+  },3000);
+}
+
+/* ── CLOCKS ── */
+function startClocks(){
+  function tick(){
+    const now=new Date();
+    const z=now.toUTCString().match(/\d{2}:\d{2}:\d{2}/)[0];
+    const sz=document.getElementById('s-z');if(sz)sz.textContent=z;
+    const tz=document.getElementById('top-z');if(tz)tz.textContent='Z '+z;
+    const yr=(now.getUTCMonth()>5||(now.getUTCMonth()===5&&now.getUTCDate()>=6))?now.getUTCFullYear()+1:now.getUTCFullYear();
+    const diff=new Date(Date.UTC(yr,5,6))-now;
+    const ds=Math.floor(diff/86400000),hs=Math.floor((diff%86400000)/3600000),ms=Math.floor((diff%3600000)/60000);
+    const str=ds+'D '+hs+'H '+ms+'M';
+    const sb=document.getElementById('s-bd');if(sb)sb.textContent=str;
+    const tb=document.getElementById('top-bd');if(tb)tb.textContent='B/D: '+str;
+  }
+  tick();setInterval(tick,1000);
+}
+
+/* ── INIT ── */
+window.addEventListener('load',()=>{
+  document.getElementById('maintenance-screen').style.display='flex';
+  ['landing-screen','boot-screen','main-terminal'].forEach(id=>{document.getElementById(id).style.display='none';});
+  if(isMob()){
+    document.getElementById('m-tapbtn').style.display='inline-block';
+    document.getElementById('m-hint').style.display='none';
+  }
+});
+</script>
+</body>
+</html>
